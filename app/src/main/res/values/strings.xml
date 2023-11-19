@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">AndroidIoT</string>
+    <string name="add_device">Add device</string>
+    <string name="add_image">Add image</string>
+    <string name="back_button">Back button</string>
+    <string name="configure_button">Configure button</string>
+    <string name="ssid">SSID</string>
+    <string name="password">Password</string>
+    <string name="submit">Submit</string>
+    <string name="connect">Connect</string>
+</resources>
