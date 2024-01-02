@@ -24,8 +24,9 @@ import java.security.PublicKey
 
 class BluetoothDeviceListActivity: AppCompatActivity() {
 
-    private var ssid = "Motorola edge 30"
-    private var password = "dupadupa"
+    private var ssid = ""
+    private var password = ""
+    private var username = ""
 
     private var readingState = false
 
@@ -215,29 +216,36 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
 
             val device = bluetoothAdapter.getRemoteDevice(deviceName)  //  Fotorezystor
             val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
+            var status = true
+            var number = 0
 
-            try {
-                socket.connect()
-                if (socket.isConnected) {
-                    val writer: OutputStream = socket.outputStream
+            while (status && number < 50) {
+                try {
+                    socket.connect()
+                    if (socket.isConnected) {
+                        val writer: OutputStream = socket.outputStream
 
-                    writer.write(("{\"doReadValue\":${this.readingState}}" + Char(10)).toByteArray())
-//                    val reader = socket.inputStream
-//                    val buffer = ByteArray(8192) // or 4096, or more
-//                    val length: Int = reader.read(buffer)
-//                    val text: String = String(buffer, 0, length)
+                        writer.write(("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState}}" + Char(10)).toByteArray())
+                        val reader = socket.inputStream
+                        val buffer = ByteArray(8192) // or 4096, or more
+                        val length: Int = reader.read(buffer)
+                        val text = String(buffer, 0, length)
 
+                        if (text.isNotEmpty()) {
+                            status = false
+                        }
 
-
-
-                    writer.close()
-//                    reader.close()
-                    socket.close()
+                        writer.close()
+                        reader.close()
+                        socket.close()
+                    }
+                    number++;
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Log.wtf("android.iot", e.toString())
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.wtf("android.iot", e.toString())
             }
+
 
         }
 
@@ -251,28 +259,34 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
 
             val device = bluetoothAdapter.getRemoteDevice(deviceName)  //  Fotorezystor
             val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
+            var status = true
+            var number = 0
 
-            try {
-                socket.connect()
-                if (socket.isConnected) {
-                    val writer: OutputStream = socket.outputStream
+            while (status && number < 50) {
+                try {
+                    socket.connect()
+                    if (socket.isConnected) {
+                        val writer: OutputStream = socket.outputStream
 
-                    writer.write(("{\"doReadValue\":${this.readingState}}" + Char(10)).toByteArray())
-//                    val reader = socket.inputStream
-//                    val buffer = ByteArray(8192) // or 4096, or more
-//                    val length: Int = reader.read(buffer)
-//                    val text: String = String(buffer, 0, length)
+                        writer.write(("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState}}" + Char(10)).toByteArray())
+                        val reader = socket.inputStream
+                        val buffer = ByteArray(8192) // or 4096, or more
+                        val length: Int = reader.read(buffer)
+                        val text: String = String(buffer, 0, length)
 
+                        if (text.isNotEmpty()) {
+                            status = false
+                        }
 
-
-
-                    writer.close()
-//                    reader.close()
-                    socket.close()
+                        writer.close()
+                        reader.close()
+                        socket.close()
+                    }
+                    number++;
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Log.wtf("android.iot", e.toString())
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.wtf("android.iot", e.toString())
             }
 
         }
@@ -309,7 +323,7 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
     }
 
     private fun packToJSON(): String {
-        return "{\"ssid\":\"${this.ssid}\",\"password\":\"${this.password}\"}" + Char(10)
+        return "{\"username\":\"${this.username}\",\"ssid\":\"${this.ssid}\",\"password\":\"${this.password}\"}" + Char(10)
     }
 
 }
