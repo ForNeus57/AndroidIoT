@@ -22,7 +22,7 @@ import java.io.OutputStream
 import java.security.PublicKey
 
 
-class BluetoothDeviceListActivity: AppCompatActivity() {
+class BluetoothDeviceListActivity : AppCompatActivity() {
 
     private var ssid = ""
     private var password = ""
@@ -79,13 +79,14 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
 
     private lateinit var bluetoothAdapter: BluetoothAdapter
 
-    private var requestBluetooth = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            //granted
-        }else{
-            //deny
+    private var requestBluetooth =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                //granted
+            } else {
+                //deny
+            }
         }
-    }
 
     private val requestMultiplePermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -118,11 +119,13 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            requestMultiplePermissions.launch(arrayOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_CONNECT))
-        }
-        else{
+            requestMultiplePermissions.launch(
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                )
+            )
+        } else {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             requestBluetooth.launch(enableBtIntent)
         }
@@ -169,7 +172,7 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
 
         connect.setOnClickListener {
             val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-            val list =  pairedDevices?.filter{ it.name == "Fotorezystor" }?.map { it.address }
+            val list = pairedDevices?.filter { it.name == "Fotorezystor" }?.map { it.address }
             val deviceName = list?.firstOrNull()
                 ?: return@setOnClickListener
 
@@ -210,7 +213,7 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
             this.readingState = false
 
             val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-            val list =  pairedDevices?.filter { it.name == "Fotorezystor" }?.map { it.address }
+            val list = pairedDevices?.filter { it.name == "Fotorezystor" }?.map { it.address }
             val deviceName = list?.firstOrNull()
                 ?: return@setOnClickListener
 
@@ -225,7 +228,11 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
                     if (socket.isConnected) {
                         val writer: OutputStream = socket.outputStream
 
-                        writer.write(("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState}}" + Char(10)).toByteArray())
+                        writer.write(
+                            ("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState}}" + Char(
+                                10
+                            )).toByteArray()
+                        )
                         val reader = socket.inputStream
                         val buffer = ByteArray(8192) // or 4096, or more
                         val length: Int = reader.read(buffer)
@@ -253,7 +260,7 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
             this.readingState = true
 
             val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-            val list =  pairedDevices?.filter { it.name == "Fotorezystor" }?.map { it.address }
+            val list = pairedDevices?.filter { it.name == "Fotorezystor" }?.map { it.address }
             val deviceName = list?.firstOrNull()
                 ?: return@setOnClickListener
 
@@ -268,7 +275,11 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
                     if (socket.isConnected) {
                         val writer: OutputStream = socket.outputStream
 
-                        writer.write(("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState}}" + Char(10)).toByteArray())
+                        writer.write(
+                            ("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState}}" + Char(
+                                10
+                            )).toByteArray()
+                        )
                         val reader = socket.inputStream
                         val buffer = ByteArray(8192) // or 4096, or more
                         val length: Int = reader.read(buffer)
@@ -296,7 +307,8 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             if (BluetoothDevice.ACTION_FOUND == action) {
-                val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                val device: BluetoothDevice? =
+                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                 val deviceName = if (ActivityCompat.checkSelfPermission(
                         this@BluetoothDeviceListActivity,
                         Manifest.permission.BLUETOOTH_CONNECT
@@ -323,7 +335,9 @@ class BluetoothDeviceListActivity: AppCompatActivity() {
     }
 
     private fun packToJSON(): String {
-        return "{\"username\":\"${this.username}\",\"ssid\":\"${this.ssid}\",\"password\":\"${this.password}\"}" + Char(10)
+        return "{\"username\":\"${this.username}\",\"ssid\":\"${this.ssid}\",\"password\":\"${this.password}\"}" + Char(
+            10
+        )
     }
 
 }

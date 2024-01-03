@@ -13,14 +13,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val button = findViewById<View>(R.id.buttonAdder) as ImageButton
-        button.setOnClickListener {
+        val pairDeviceButton = findViewById<View>(R.id.buttonAdder) as ImageButton
+        pairDeviceButton.setOnClickListener {
             val intentMain = Intent(
                 this@MainActivity,
                 BluetoothDeviceListActivity::class.java
             )
             this@MainActivity.startActivity(intentMain)
+            println("Changed to BluetoothDeviceListActivity")
             Log.i("Content:", "Changed to BluetoothDeviceListActivity")
+        }
+
+        val accountButton = findViewById<View>(R.id.buttonAccount) as ImageButton
+        accountButton.setOnClickListener {
+            val intentMain = Intent(
+                this@MainActivity,
+                AccountActivity::class.java
+            )
+            this@MainActivity.startActivity(intentMain)
         }
     }
 }
