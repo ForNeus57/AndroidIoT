@@ -1,6 +1,7 @@
 package android.iot
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
@@ -15,22 +16,27 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import org.json.JSONObject
 import java.io.OutputStream
+import java.security.MessageDigest
 import java.security.PublicKey
 
 
 class BluetoothDeviceListActivity : AppCompatActivity() {
 
-    private var ssid = ""
-    private var password = ""
-    private var username = ""
+    private var ssid = "ssid"
+    private var password = "password"
+    private var username = "username"
 
     private var readingState = false
+    //  https://stackoverflow.com/questions/27652105/arduino-to-android-secure-bluetooth-connection
 
     private var listString = ArrayList<String>()
+    private var history = HashSet<String>()
 
     private var publicArduinoClientKey = """
         -----BEGIN PUBLIC KEY-----
@@ -95,6 +101,7 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
             }
         }
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bluetooth_device_list)
@@ -115,7 +122,7 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
         val connect = findViewById<View>(R.id.connectButton) as Button
         val stop = findViewById<View>(R.id.stopButton) as Button
         val start = findViewById<View>(R.id.startButton) as Button
-
+        val wifiConnectionStatusText = findViewById<View>(R.id.connectionStatusTextView) as TextView
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -159,6 +166,7 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
             this.password = password.text.toString()
             this.listString.add(packToJSON())
 //            adapter.notifyDataSetChanged()
+//            wifiConnectionStatusText.text = this.packToJSON()
         }
 
         val discoverDevicesIntent = IntentFilter(BluetoothDevice.ACTION_FOUND)
@@ -191,11 +199,16 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
                     val reader = socket.inputStream
 
                     val buffer = ByteArray(8192) // or 4096, or more
-                    val length: Int = reader.read(buffer)
-                    val text: String = String(buffer, 0, length)
-
-
-
+                    val length = reader.read(buffer)
+                    val text = String(buffer, 0, length)
+                    val jsonObject = JSONObject(text)
+                    val key = jsonObject.getString("key")
+                    if (history.contains(key)) {
+                        wifiConnectionStatusText.text = "Hash already used! Detected replay attack!"
+                    } else {
+                        wifiConnectionStatusText.text = text
+                        history.add(key)
+                    }
 
                     writer.close()
                     reader.close()
@@ -222,14 +235,18 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
             var status = true
             var number = 0
 
-            while (status && number < 50) {
+            while (status && number < 20) {
                 try {
                     socket.connect()
                     if (socket.isConnected) {
                         val writer: OutputStream = socket.outputStream
 
                         writer.write(
-                            ("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState}}" + Char(
+                            ("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState},\"hash\":\"${
+                                this.getHash(
+                                    System.currentTimeMillis().toString()
+                                )
+                            }\"}" + Char(
                                 10
                             )).toByteArray()
                         )
@@ -239,6 +256,14 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
                         val text = String(buffer, 0, length)
 
                         if (text.isNotEmpty()) {
+                            val jsonObject = JSONObject(text)
+                            val key = jsonObject.getString("key")
+                            if (history.contains(key)) {
+                                wifiConnectionStatusText.text = "Hash already used! Detected replay attack!"
+                            } else {
+                                wifiConnectionStatusText.text = text
+                                history.add(key)
+                            }
                             status = false
                         }
 
@@ -269,23 +294,35 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
             var status = true
             var number = 0
 
-            while (status && number < 50) {
+            while (status && number < 20) {
                 try {
                     socket.connect()
                     if (socket.isConnected) {
                         val writer: OutputStream = socket.outputStream
 
                         writer.write(
-                            ("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState}}" + Char(
+                            ("{\"username\":\"${this.username}\",\"doReadValue\":${this.readingState},\"hash\":\"${
+                                this.getHash(
+                                    System.currentTimeMillis().toString()
+                                )
+                            }\"}" + Char(
                                 10
                             )).toByteArray()
                         )
                         val reader = socket.inputStream
                         val buffer = ByteArray(8192) // or 4096, or more
-                        val length: Int = reader.read(buffer)
-                        val text: String = String(buffer, 0, length)
+                        val length = reader.read(buffer)
+                        val text = String(buffer, 0, length)
 
                         if (text.isNotEmpty()) {
+                            val jsonObject = JSONObject(text)
+                            val key = jsonObject.getString("key")
+                            if (history.contains(key)) {
+                                wifiConnectionStatusText.text = "Hash already used! Detected replay attack!"
+                            } else {
+                                wifiConnectionStatusText.text = text
+                                history.add(key)
+                            }
                             status = false
                         }
 
@@ -335,9 +372,16 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
     }
 
     private fun packToJSON(): String {
-        return "{\"username\":\"${this.username}\",\"ssid\":\"${this.ssid}\",\"password\":\"${this.password}\"}" + Char(
+        return "{\"username\":\"${this.username}\",\"ssid\":\"${this.ssid}\",\"password\":\"${this.password}\",\"hash\":\"${this.getHash(System.currentTimeMillis().toString())}\"}" + Char(
             10
         )
+    }
+
+    private fun getHash(value: String): String {
+        val bytes = value.toByteArray()
+        val md = MessageDigest.getInstance("SHA-256")
+        val digest = md.digest(bytes)
+        return digest.fold(StringBuilder()) { sb, it -> sb.append("%02x".format(it)) }.toString()
     }
 
 }
