@@ -18,12 +18,12 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 
-class LoginActivity : AppCompatActivity() {
-    suspend fun sendLoginRequest(username: String, password: String) : Map<String, String> {
+class RegisterActivity : AppCompatActivity() {
+    suspend fun sendRegisterRequest(username: String, password: String): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
-        val loginUrl = "$apiUrl/login"
+        val usersUrl = "$apiUrl/users"
 
-        val response = HttpClient(CIO).request(loginUrl) {
+        val response = HttpClient(CIO).request(usersUrl) {
             method = io.ktor.http.HttpMethod.Post
             headers.append("Content-Type", "application/json")
             setBody("""{"username":"$username", "password":"$password"}""")
@@ -38,34 +38,24 @@ class LoginActivity : AppCompatActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        setContentView(R.layout.activity_register)
 
         val backButton = findViewById<View>(R.id.backButton) as ImageButton
         backButton.setOnClickListener {
             val intentMain = Intent(
-                this@LoginActivity,
-                MainActivity::class.java
+                this@RegisterActivity,
+                LoginActivity::class.java
             )
-            this@LoginActivity.startActivity(intentMain)
+            this@RegisterActivity.startActivity(intentMain)
             Log.i("Content ", "Main layout")
         }
 
+
         val registerButton = findViewById<View>(R.id.btnRegister)
         registerButton.setOnClickListener {
-            val intentRegister = Intent(
-                this@LoginActivity,
-                RegisterActivity::class.java
-            )
-            this@LoginActivity.startActivity(intentRegister)
-            Log.i("Content ", "Register layout")
-        }
-
-
-        val loginButton = findViewById<View>(R.id.btnLogin)
-        loginButton.setOnClickListener {
-            val intentAccount = Intent(
-                this@LoginActivity,
-                AccountActivity::class.java
+            val intentLogin = Intent(
+                this@RegisterActivity,
+                LoginActivity::class.java
             )
             var etUsername = findViewById<View>(R.id.etUsername) as EditText
             var etPassword = findViewById<View>(R.id.etPassword) as EditText
@@ -73,16 +63,14 @@ class LoginActivity : AppCompatActivity() {
             var password = etPassword.text.toString()
             Log.i("Content ", "$username $password")
             lifecycleScope.launch {
-                var response = sendLoginRequest(username, password)
-                var loggedIn = response["success"] == "true"
-                if (loggedIn) {
-                    intentAccount.putExtra("userLoggedIn", true)
-                    intentAccount.putExtra("username", username)
-                    this@LoginActivity.startActivity(intentAccount)
-                    Log.i("Content ", "Account layout")
+                var response = sendRegisterRequest(username, password)
+                var createdAccount = response["success"] == "true"
+                if (createdAccount) {
+                    this@RegisterActivity.startActivity(intentLogin)
+                    Log.i("Content ", "Login layout")
                 } else {
                     Toast.makeText(
-                        this@LoginActivity,
+                        this@RegisterActivity,
                         response["message"],
                         Toast.LENGTH_LONG
                     ).show()

@@ -36,7 +36,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -45,6 +44,10 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-//    implementation(libs.appcompat.v7)
+    // Add Ktor dependencies
+    implementation("io.ktor:ktor-client-core:2.3.7")
+    implementation("io.ktor:ktor-client-cio:2.3.7")
+    implementation("io.ktor:ktor-client-json:2.3.7")
+    implementation("io.ktor:ktor-client-serialization:2.3.7")
 
 }
