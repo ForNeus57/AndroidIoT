@@ -19,6 +19,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 
 class LoginActivity : AppCompatActivity() {
+    companion object {
+        const val SHARED_PREFS = "sharedPrefs"
+        const val USERNAME = "username"
+        const val LOGGED_IN = "loggedIn"
+    }
     suspend fun sendLoginRequest(username: String, password: String) : Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val loginUrl = "$apiUrl/login"
@@ -60,6 +65,7 @@ class LoginActivity : AppCompatActivity() {
             Log.i("Content ", "Register layout")
         }
 
+        val sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
 
         val loginButton = findViewById<View>(R.id.btnLogin)
         loginButton.setOnClickListener {
@@ -76,8 +82,11 @@ class LoginActivity : AppCompatActivity() {
                 var response = sendLoginRequest(username, password)
                 var loggedIn = response["success"] == "true"
                 if (loggedIn) {
-                    intentAccount.putExtra("userLoggedIn", true)
-                    intentAccount.putExtra("username", username)
+                    val editor = sharedPreferences.edit()
+                    editor.putString(USERNAME, username)
+                    editor.putBoolean(LOGGED_IN, true)
+                    editor.apply()
+
                     this@LoginActivity.startActivity(intentAccount)
                     Log.i("Content ", "Account layout")
                 } else {
