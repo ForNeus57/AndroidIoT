@@ -41,23 +41,12 @@
             android:hint="Password"/>
 
         <Button
-            android:id="@+id/btnLogin"
+            android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/etPassword"
             android:layout_marginTop="16dp"
-            android:text="Login"/>
-
-<!--register -->
-        <TextView
-            android:id="@+id/btnRegister"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/btnLogin"
-            android:layout_centerHorizontal="true"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
-            android:text="Don't have an account? Register here" />
+            android:text="Register"/>
 
     </LinearLayout>
 

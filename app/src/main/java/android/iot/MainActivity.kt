@@ -9,6 +9,11 @@ import androidx.appcompat.app.AppCompatActivity
 
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        const val SHARED_PREFS = "sharedPrefs"
+        const val USERNAME = "username"
+        const val LOGGED_IN = "loggedIn"
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -31,6 +36,8 @@ class MainActivity : AppCompatActivity() {
                 AccountActivity::class.java
             )
             this@MainActivity.startActivity(intentMain)
+            println("Changed to AccountActivity")
+            Log.i("Content:", "Changed to AccountActivity")
         }
     }
 }

@@ -9,11 +9,16 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class AccountActivity : AppCompatActivity() {
-    private var userLoggedIn: Boolean = false
+    companion object {
+        const val SHARED_PREFS = "sharedPrefs"
+        const val USERNAME = "username"
+        const val LOGGED_IN = "loggedIn"
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        userLoggedIn = intent.getBooleanExtra("userLoggedIn", false)
+        val sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
+        val userLoggedIn = sharedPreferences.getBoolean(LOGGED_IN, false)
 
         if (!userLoggedIn) {
             val intentLogin = Intent(
@@ -24,7 +29,7 @@ class AccountActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_account)
-        val username = intent.getStringExtra("username")
+        val username = sharedPreferences.getString(USERNAME, "")
 
         val tvUsername = findViewById<View>(R.id.tvUsername) as TextView
         tvUsername.text = username
@@ -45,7 +50,9 @@ class AccountActivity : AppCompatActivity() {
                 this@AccountActivity,
                 MainActivity::class.java
             )
-            intentMain.putExtra("userLoggedIn", false)
+            val editor = sharedPreferences.edit()
+            editor.putBoolean(LOGGED_IN, false)
+            editor.apply()
             this@AccountActivity.startActivity(intentMain)
             Log.i("Content ", "Login layout")
         }
