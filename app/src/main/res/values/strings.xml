@@ -10,4 +10,5 @@
     <string name="connect">Connect</string>
     <string name="stop_reading">Stop reading</string>
     <string name="start_reading">Start reading</string>
+    <string name="connection_status">Connection status</string>
 </resources>

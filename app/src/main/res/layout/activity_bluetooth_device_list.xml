@@ -52,6 +52,13 @@
             android:layout_height="wrap_content"
             android:text="@string/submit" />
 
+        <TextView
+            android:id="@+id/connectionStatusTextView"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:text="@string/connection_status"
+            android:autoSizeMinTextSize="65dp" />
+
         <Button
             android:id="@+id/connectButton"
             android:layout_width="match_parent"
@@ -78,6 +85,7 @@
                 android:layout_weight="1"
                 android:text="@string/stop_reading"
                 style="?android:attr/buttonBarButtonStyle" />
+
         </LinearLayout>
 
     </LinearLayout>
