@@ -15,7 +15,7 @@
 
         android:contentDescription="@string/add_image"
 
-        android:src="@drawable/plus_circle"
+        android:src="@drawable/cpu_fill"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
