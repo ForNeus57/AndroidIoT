@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
                 AccountActivity::class.java
             )
             this@MainActivity.startActivity(intentMain)
+            println("Changed to AccountActivity")
+            Log.i("Content:", "Changed to AccountActivity")
         }
     }
 }
