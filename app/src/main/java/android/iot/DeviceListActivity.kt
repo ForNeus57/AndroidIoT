@@ -88,7 +88,7 @@ class DeviceListActivity : AppCompatActivity() {
                         this@DeviceListActivity,
                     BluetoothDeviceListActivity::class.java
                 )
-                intentMain.putExtra("deviceName", data[index].name)
+                intentMain.putExtra("deviceMac", data[index].address)
 
                 this@DeviceListActivity.startActivity(intentMain)
             }
