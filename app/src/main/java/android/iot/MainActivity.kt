@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         pairDeviceButton.setOnClickListener {
             val intentMain = Intent(
                 this@MainActivity,
-                BluetoothDeviceListActivity::class.java
+                DeviceListActivity::class.java
             )
             this@MainActivity.startActivity(intentMain)
             println("Changed to BluetoothDeviceListActivity")

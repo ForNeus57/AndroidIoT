@@ -8,22 +8,6 @@
     tools:context=".MainActivity">
 
     <ImageButton
-        android:id="@+id/buttonAdder"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/rounded_button"
-
-        android:contentDescription="@string/add_image"
-
-        android:src="@drawable/cpu_fill"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.774" />
-
-    <ImageButton
         android:id="@+id/buttonAccount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -34,9 +18,22 @@
         android:src="@drawable/baseline_account_circle_24"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.266" />
+        app:layout_constraintVertical_bias="0.224" />
+
+    <ImageButton
+        android:id="@+id/buttonAdder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_button"
+
+        android:contentDescription="@string/add_image"
+
+        android:src="@drawable/cpu_fill"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonAccount" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

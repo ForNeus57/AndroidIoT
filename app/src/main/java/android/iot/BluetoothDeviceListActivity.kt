@@ -18,6 +18,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import org.json.JSONObject
@@ -31,6 +32,8 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
     private var ssid = "ssid"
     private var password = "password"
     private var username = "username"
+
+    private var deviceMac = ""
 
     private var readingState = false
     //  https://stackoverflow.com/questions/27652105/arduino-to-android-secure-bluetooth-connection
@@ -110,10 +113,9 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
         button.setOnClickListener {
             val intentMain = Intent(
                 this@BluetoothDeviceListActivity,
-                MainActivity::class.java
+                DeviceListActivity::class.java
             )
             this@BluetoothDeviceListActivity.startActivity(intentMain)
-//            Log.i("Content ", " Main layout ")
         }
 
         val submit = findViewById<View>(R.id.submitButton) as Button
@@ -123,7 +125,7 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
         val stop = findViewById<View>(R.id.stopButton) as Button
         val start = findViewById<View>(R.id.startButton) as Button
         val wifiConnectionStatusText = findViewById<View>(R.id.connectionStatusTextView) as TextView
-
+        this.deviceMac = intent.getStringExtra("deviceMac") ?: ""
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             requestMultiplePermissions.launch(
@@ -147,26 +149,14 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
                     Manifest.permission.BLUETOOTH_CONNECT
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
                 return
             }
             startActivityForResult(enableBluetoothIntent, 1)
         }
-//        val adapter: ArrayAdapter<String?> = ArrayAdapter<String?>(
-//        list.adapter = adapter
-
         submit.setOnClickListener {
             this.ssid = ssid.text.toString()
             this.password = password.text.toString()
             this.listString.add(packToJSON())
-//            adapter.notifyDataSetChanged()
-//            wifiConnectionStatusText.text = this.packToJSON()
         }
 
         val discoverDevicesIntent = IntentFilter(BluetoothDevice.ACTION_FOUND)
@@ -180,9 +170,23 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
 
         connect.setOnClickListener {
             val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-            val list = pairedDevices?.filter { it.name == "Fotorezystor" }?.map { it.address }
+            val list = pairedDevices?.filter { it.address == this.deviceMac }?.map { it.address }
             val deviceName = list?.firstOrNull()
-                ?: return@setOnClickListener
+
+            if (deviceName == null) {
+                val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+                builder
+                    .setMessage("Device not found!")
+                    .setTitle("Error")
+                    .setNegativeButton("Ok") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
+                wifiConnectionStatusText.text = "Device not found!"
+                return@setOnClickListener
+            }
 
             val device = bluetoothAdapter.getRemoteDevice(deviceName)  //  Fotorezystor
             val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
@@ -226,9 +230,23 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
             this.readingState = false
 
             val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-            val list = pairedDevices?.filter { it.name == "Fotorezystor" }?.map { it.address }
+            val list = pairedDevices?.filter { it.address == this.deviceMac }?.map { it.address }
             val deviceName = list?.firstOrNull()
-                ?: return@setOnClickListener
+
+            if (deviceName == null) {
+                val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+                builder
+                    .setMessage("Device not found!")
+                    .setTitle("Error")
+                    .setNegativeButton("Ok") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
+                wifiConnectionStatusText.text = "Device not found!"
+                return@setOnClickListener
+            }
 
             val device = bluetoothAdapter.getRemoteDevice(deviceName)  //  Fotorezystor
             val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
@@ -285,9 +303,23 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
             this.readingState = true
 
             val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-            val list = pairedDevices?.filter { it.name == "Fotorezystor" }?.map { it.address }
+            val list = pairedDevices?.filter { it.address == this.deviceMac }?.map { it.address }
             val deviceName = list?.firstOrNull()
-                ?: return@setOnClickListener
+
+            if (deviceName == null) {
+                val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+                builder
+                    .setMessage("Device not found!")
+                    .setTitle("Error")
+                    .setNegativeButton("Ok") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
+                wifiConnectionStatusText.text = "Device not found!"
+                return@setOnClickListener
+            }
 
             val device = bluetoothAdapter.getRemoteDevice(deviceName)  //  Fotorezystor
             val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
