@@ -97,7 +97,7 @@ class AccountActivity : AppCompatActivity() {
 
                     var devicesListView = findViewById<ListView>(R.id.lvDevices)
                     val arrayAdapter: ArrayAdapter<*>
-                    arrayAdapter = ArrayAdapter(this@AccountActivity, android.R.layout.simple_list_item_1, deviceNameToId.keys.toList())
+                    arrayAdapter = ArrayAdapter(this@AccountActivity, R.layout.basic_list_element, deviceNameToId.keys.toList())
                     devicesListView.adapter = arrayAdapter
 
                     devicesListView.setOnItemClickListener { parent, view, position, id ->

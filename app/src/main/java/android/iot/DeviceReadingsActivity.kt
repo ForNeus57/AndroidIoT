@@ -64,7 +64,7 @@ class DeviceReadingsActivity : AppCompatActivity() {
 
             var devicesListView = findViewById<ListView>(R.id.lvDevices)
             val arrayAdapter: ArrayAdapter<*>
-            arrayAdapter = ArrayAdapter(this@DeviceReadingsActivity, android.R.layout.simple_list_item_1, readings)
+            arrayAdapter = ArrayAdapter(this@DeviceReadingsActivity, R.layout.basic_list_element, readings)
             devicesListView.adapter = arrayAdapter
         }
     }
