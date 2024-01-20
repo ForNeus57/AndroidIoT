@@ -5,6 +5,9 @@ import android.content.Intent
 import android.iot.bluetooth.BluetoothListDeviceAdapter
 import android.iot.bluetooth.Data
 import android.iot.bluetooth.RecyclerViewClickListener
+import android.iot.devices.Device
+import android.iot.devices.UserListDeviceAdapter
+import android.iot.devices.UserRecyclerViewClickListener
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageButton
@@ -56,22 +59,23 @@ class UserDevices : AppCompatActivity() {
 
         val data = this.getData()
 
-        val listener = object: RecyclerViewClickListener() {
+        val listener = object: UserRecyclerViewClickListener() {
             override fun onClick(index: Int) {
                 super.onClick(index)
 
                 val intentMain = Intent(
                     this@UserDevices,
-                    DeviceData::class.java
+                    DeviceReadingsActivity::class.java
                 )
 
-                //  TODO: Fill intent with data that device data activity needs!!!
+                intentMain.putExtra("device_id", data[index].uuid)
+
 
                 this@UserDevices.startActivity(intentMain)
             }
         }
 
-        val adapter = BluetoothListDeviceAdapter(data, this, listener)
+        val adapter = UserListDeviceAdapter(data, this, listener)
 
 
         val recyclerView = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.itemsList)
@@ -81,12 +85,12 @@ class UserDevices : AppCompatActivity() {
     }
 
 
-    private fun getData(): ArrayList<Data> {
-        val output = ArrayList<Data>()
+    private fun getData(): ArrayList<Device> {
+        val output = ArrayList<Device>()
 
-        output.add(Data("Device 1", "00:00:00:00:00:00"))
-        output.add(Data("Device 2", "00:00:00:00:00:00"))
-        output.add(Data("Device 3", "00:00:00:00:00:00"))
+        output.add(Device("Device 1", "00:00:00:00:00:00", "00:00:00:00:00:00"))
+        output.add(Device("Device 2", "00:00:00:00:00:00", "00:00:00:00:00:00"))
+        output.add(Device("Device 3", "00:00:00:00:00:00", "00:00:00:00:00:00"))
 
         return output
     }

@@ -14,4 +14,5 @@
     <string name="device_name">Device Name</string>
     <string name="mac">Mac:</string>
     <string name="please_choose_your_device_from_the_list_below">Choose your device from the list below!</string>
+    <string name="uuid">UUID:</string>
 </resources>
