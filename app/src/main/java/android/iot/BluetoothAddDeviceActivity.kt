@@ -192,8 +192,6 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(receiver)
-
-        this.removeDeviceId(this.deviceMac, this.username, this.deviceId)
     }
 
     private fun packToJSON(): String {
@@ -212,12 +210,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
 
     private fun getDeviceId(macAddress: String, username: String): String {
         //  TODO: Implement this function
-        //  Remember that device id may be invalidated if connection is not successful and user quits the app
-        //  Implement the second function for this case.
         return ""
     }
 
-    private fun removeDeviceId(macAddress: String, username: String, deviceId: String) {
-        //  TODO: Implement this function
-    }
 }
