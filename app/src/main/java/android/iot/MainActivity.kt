@@ -22,11 +22,9 @@ class MainActivity : AppCompatActivity() {
         pairDeviceButton.setOnClickListener {
             val intentMain = Intent(
                 this@MainActivity,
-                DeviceListActivity::class.java
+                UserDevices::class.java
             )
             this@MainActivity.startActivity(intentMain)
-            println("Changed to BluetoothDeviceListActivity")
-            Log.i("Content:", "Changed to BluetoothDeviceListActivity")
         }
 
         val accountButton = findViewById<View>(R.id.buttonAccount) as ImageButton
@@ -36,8 +34,6 @@ class MainActivity : AppCompatActivity() {
                 AccountActivity::class.java
             )
             this@MainActivity.startActivity(intentMain)
-            println("Changed to AccountActivity")
-            Log.i("Content:", "Changed to AccountActivity")
         }
     }
 }

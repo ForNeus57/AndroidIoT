@@ -24,7 +24,13 @@
         android:theme="@style/Theme.AndroidIoT"
         tools:targetApi="31">
         <activity
-            android:name=".DeviceListActivity"
+            android:name=".DeviceData"
+            android:exported="false" />
+        <activity
+            android:name=".UserDevices"
+            android:exported="false" />
+        <activity
+            android:name=".PairedDeviceListActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
@@ -36,7 +42,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".BluetoothDeviceListActivity"
+            android:name=".BluetoothAddDeviceActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

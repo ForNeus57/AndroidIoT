@@ -33,6 +33,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    buildToolsVersion = "34.0.0"
 }
 
 dependencies {
@@ -45,9 +46,9 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     // Add Ktor dependencies
-    implementation("io.ktor:ktor-client-core:2.3.7")
-    implementation("io.ktor:ktor-client-cio:2.3.7")
-    implementation("io.ktor:ktor-client-json:2.3.7")
-    implementation("io.ktor:ktor-client-serialization:2.3.7")
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.json)
+    implementation(libs.ktor.client.serialization)
 
 }
