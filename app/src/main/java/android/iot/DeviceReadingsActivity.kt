@@ -47,10 +47,9 @@ class DeviceReadingsActivity : AppCompatActivity() {
         backButton.setOnClickListener {
             val intentMain = Intent(
                 this@DeviceReadingsActivity,
-                AccountActivity::class.java
+                UserDevices::class.java
             )
             this@DeviceReadingsActivity.startActivity(intentMain)
-            Log.i("Content ", " Main layout ")
         }
 
         val deviceId = intent.getStringExtra("device_id")
