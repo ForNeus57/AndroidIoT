@@ -18,26 +18,27 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import org.json.JSONObject
 import java.io.OutputStream
 import java.security.MessageDigest
-import java.security.PublicKey
 
 
-class BluetoothDeviceListActivity : AppCompatActivity() {
+class BluetoothAddDeviceActivity : AppCompatActivity() {
+
+    companion object {
+        const val SHARED_PREFS = "sharedPrefs"
+        const val USERNAME = "username"
+        const val LOGGED_IN = "loggedIn"
+    }
 
     private var ssid = "ssid"
     private var password = "password"
-    private var username = "username"
-
+    private var username = ""
+    private var deviceId = ""
     private var deviceMac = ""
 
-    //  https://stackoverflow.com/questions/27652105/arduino-to-android-secure-bluetooth-connection
-
-    private var listString = ArrayList<String>()
     private var history = HashSet<String>()
 
 
@@ -62,22 +63,24 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_bluetooth_device_list)
-
-        val button = findViewById<View>(R.id.backButton) as ImageButton
-        button.setOnClickListener {
-            val intentMain = Intent(
-                this@BluetoothDeviceListActivity,
-                DeviceListActivity::class.java
-            )
-            this@BluetoothDeviceListActivity.startActivity(intentMain)
-        }
+        setContentView(R.layout.activity_bluetooth_add_device)
+        this.deviceMac = intent.getStringExtra("deviceMac") ?: ""
+        val preferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
+        this.username = preferences.getString(USERNAME, "") ?: ""
+        this.deviceId = getDeviceId(this.deviceMac, this.username)
 
         val ssid = findViewById<View>(R.id.ssidEditText) as EditText
         val password = findViewById<View>(R.id.wifiPasswordEditTextPassword) as EditText
-        val connect = findViewById<View>(R.id.connectButton) as Button
         val wifiConnectionStatusText = findViewById<View>(R.id.connectionStatusTextView) as TextView
-        this.deviceMac = intent.getStringExtra("deviceMac") ?: ""
+        val connect = findViewById<View>(R.id.connectButton) as Button
+        val backButton = findViewById<View>(R.id.backButton) as ImageButton
+        backButton.setOnClickListener {
+            val intentMain = Intent(
+                this@BluetoothAddDeviceActivity,
+                PairedDeviceListActivity::class.java
+            )
+            this@BluetoothAddDeviceActivity.startActivity(intentMain)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             requestMultiplePermissions.launch(
@@ -92,7 +95,6 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
         }
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-
 
         if (!bluetoothAdapter.isEnabled) {
             val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
@@ -118,21 +120,21 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
         connect.setOnClickListener {
             this.ssid = ssid.text.toString()
             this.password = password.text.toString()
-            this.listString.add(packToJSON())
+
+            ssid.text.clear()
+            password.text.clear()
 
             val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
             val list = pairedDevices?.filter { it.address == this.deviceMac }?.map { it.address }
             val deviceName = list?.firstOrNull() ?: return@setOnClickListener
 
-            val device = bluetoothAdapter.getRemoteDevice(deviceName)  //  Fotorezystor
+            val device = bluetoothAdapter.getRemoteDevice(deviceName)
             val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
 
             try {
                 socket.connect()
                 if (socket.isConnected) {
                     val writer: OutputStream = socket.outputStream
-
-
 
                     writer.write(packToJSON().toByteArray())
 
@@ -154,8 +156,6 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
                     reader.close()
                     socket.close()
                 }
-
-
             } catch (e: Exception) {
                 e.printStackTrace()
                 Log.wtf("android.iot", e.toString())
@@ -170,7 +170,7 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
                 val device: BluetoothDevice? =
                     intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                 val deviceName = if (ActivityCompat.checkSelfPermission(
-                        this@BluetoothDeviceListActivity,
+                        this@BluetoothAddDeviceActivity,
                         Manifest.permission.BLUETOOTH_CONNECT
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
@@ -192,6 +192,8 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(receiver)
+
+        this.removeDeviceId(this.deviceMac, this.username, this.deviceId)
     }
 
     private fun packToJSON(): String {
@@ -207,4 +209,15 @@ class BluetoothDeviceListActivity : AppCompatActivity() {
         return digest.fold(StringBuilder()) { sb, it -> sb.append("%02x".format(it)) }.toString()
     }
 
+
+    private fun getDeviceId(macAddress: String, username: String): String {
+        //  TODO: Implement this function
+        //  Remember that device id may be invalidated if connection is not successful and user quits the app
+        //  Implement the second function for this case.
+        return ""
+    }
+
+    private fun removeDeviceId(macAddress: String, username: String, deviceId: String) {
+        //  TODO: Implement this function
+    }
 }

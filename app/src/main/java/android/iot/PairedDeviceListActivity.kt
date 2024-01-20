@@ -19,7 +19,9 @@ import android.widget.ImageButton
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 
-class DeviceListActivity : AppCompatActivity() {
+class PairedDeviceListActivity : AppCompatActivity() {
+
+    private var forbiddenDevicesAddresses = ArrayList<String>()
 
     private var requestBluetooth =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -44,7 +46,7 @@ class DeviceListActivity : AppCompatActivity() {
                 val device: BluetoothDevice? =
                     intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                 val deviceName = if (ActivityCompat.checkSelfPermission(
-                        this@DeviceListActivity,
+                        this@PairedDeviceListActivity,
                         Manifest.permission.BLUETOOTH_CONNECT
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
@@ -65,43 +67,45 @@ class DeviceListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_device_list)
+        setContentView(R.layout.activity_paired_device_list)
+        this.forbiddenDevicesAddresses = intent.getStringArrayListExtra("devicesAddresses") ?: ArrayList()
+
 
         val back: ImageButton = findViewById(R.id.backButton)
         back.setOnClickListener {
             val intentMain = Intent(
-                this@DeviceListActivity,
-                MainActivity::class.java
+                this@PairedDeviceListActivity,
+                UserDevices::class.java
             )
-            this@DeviceListActivity.startActivity(intentMain)
+            this@PairedDeviceListActivity.startActivity(intentMain)
         }
 
         val data = this.getData()
-
-        val recyclerView = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.itemsList)
 
         val listener = object: RecyclerViewClickListener() {
             override fun onClick(index: Int) {
                 super.onClick(index)
 
                 val intentMain = Intent(
-                        this@DeviceListActivity,
-                    BluetoothDeviceListActivity::class.java
+                    this@PairedDeviceListActivity,
+                    BluetoothAddDeviceActivity::class.java
                 )
                 intentMain.putExtra("deviceMac", data[index].address)
 
-                this@DeviceListActivity.startActivity(intentMain)
+                this@PairedDeviceListActivity.startActivity(intentMain)
             }
         }
 
 
         val adapter = BluetoothListDeviceAdapter(data, this, listener)
 
+        val recyclerView = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.itemsList)
+
         recyclerView.adapter = adapter
         recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
     }
 
-    fun getData(): ArrayList<Data> {
+    private fun getData(): ArrayList<Data> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             requestMultiplePermissions.launch(
                 arrayOf(
@@ -139,7 +143,17 @@ class DeviceListActivity : AppCompatActivity() {
 
         val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
 
-        return ArrayList(pairedDevices?.map { Data(it.name, it.address) }?.toList() ?: ArrayList<Data>())
+        val output =  ArrayList(pairedDevices?.filter { device -> device.address !in this.forbiddenDevicesAddresses }?.map { Data(it.name, it.address) }?.toList() ?: ArrayList<Data>())
+
+        //  TODO: Remove this
+        if (output.size == 0) {
+            output.add(Data("Example1", "00:11:22:33:FF:EE"))
+            output.add(Data("Example2", "01:11:22:33:FF:EE"))
+            output.add(Data("Example3", "02:11:22:33:FF:EE"))
+            output.add(Data("Example4", "03:11:22:33:FF:EE"))
+        }
+
+        return output
     }
 
     override fun onDestroy() {
