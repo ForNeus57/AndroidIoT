@@ -47,46 +47,17 @@
             android:importantForAutofill="yes" />
 
         <Button
-            android:id="@+id/submitButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/submit" />
-
-        <TextView
-            android:id="@+id/connectionStatusTextView"
-            android:layout_width="match_parent"
-            android:layout_height="65dp"
-            android:text="@string/connection_status"
-            android:autoSizeMinTextSize="65dp" />
-
-        <Button
             android:id="@+id/connectButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/connect" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/connectionStatusTextView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/startButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/start_reading"
-                style="?android:attr/buttonBarButtonStyle" />
-
-            <Button
-                android:id="@+id/stopButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/stop_reading"
-                style="?android:attr/buttonBarButtonStyle" />
-
-        </LinearLayout>
+            android:layout_height="65dp"
+            android:autoSizeMinTextSize="65dp"
+            android:text="@string/connection_status" />
 
     </LinearLayout>
 
