@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.ktor.client.HttpClient
@@ -37,8 +38,7 @@ class UserDevices : AppCompatActivity() {
         val back = findViewById<ImageButton>(R.id.backButton)
         back.setOnClickListener {
             val intentMain = Intent(
-                this@UserDevices,
-                MainActivity::class.java
+                this@UserDevices, MainActivity::class.java
             )
             this@UserDevices.startActivity(intentMain)
         }
@@ -47,8 +47,7 @@ class UserDevices : AppCompatActivity() {
         addButton.setOnClickListener {
             if (getSharedPreferences(SHARED_PREFS, MODE_PRIVATE).getBoolean(LOGGED_IN, false)) {
                 val intentPairedDeviceList = Intent(
-                    this@UserDevices,
-                    PairedDeviceListActivity::class.java
+                    this@UserDevices, PairedDeviceListActivity::class.java
                 )
 
                 intentPairedDeviceList.putExtra("devicesAddresses", devices)
@@ -56,9 +55,7 @@ class UserDevices : AppCompatActivity() {
             } else {
                 //  User is not logged in
                 val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-                builder
-                    .setMessage("Please log in to add a device!")
-                    .setTitle("Not logged in!")
+                builder.setMessage("Please log in to add a device!").setTitle("Not logged in!")
 
                 val dialog: AlertDialog = builder.create()
                 dialog.show()
@@ -70,13 +67,18 @@ class UserDevices : AppCompatActivity() {
             val spinner = findViewById<ProgressBar>(R.id.progressBar)
             spinner.visibility = View.GONE;
 
-            val listener = object: UserRecyclerViewClickListener() {
+            if (data.isEmpty()) {
+                Toast.makeText(
+                    this@UserDevices, "No devices found!", Toast.LENGTH_LONG
+                ).show()
+            }
+
+            val listener = object : UserRecyclerViewClickListener() {
                 override fun onClick(index: Int) {
                     super.onClick(index)
 
                     val intentDeviceReadings = Intent(
-                        this@UserDevices,
-                        DeviceReadingsActivity::class.java
+                        this@UserDevices, DeviceReadingsActivity::class.java
                     )
 
                     intentDeviceReadings.putExtra("device_id", data[index].uuid)
@@ -87,10 +89,12 @@ class UserDevices : AppCompatActivity() {
 
             val adapter = UserListDeviceAdapter(data, this@UserDevices, listener)
 
-            val recyclerView = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.itemsList)
+            val recyclerView =
+                findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.itemsList)
 
             recyclerView.adapter = adapter
-            recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@UserDevices)
+            recyclerView.layoutManager =
+                androidx.recyclerview.widget.LinearLayoutManager(this@UserDevices)
         }
 
     }
@@ -98,7 +102,11 @@ class UserDevices : AppCompatActivity() {
 
     private suspend fun getData(): ArrayList<Device> {
         val output = ArrayList<Device>()
-        val response = sendListDevicesRequest(getSharedPreferences(SHARED_PREFS, MODE_PRIVATE).getString(USERNAME, "")!!)
+        val response = sendListDevicesRequest(
+            getSharedPreferences(SHARED_PREFS, MODE_PRIVATE).getString(
+                USERNAME, ""
+            )!!
+        )
         val devices = getDeviceNameToDeviceIdMap(response["data"]!!)
 
         for (device in devices) {
@@ -107,7 +115,7 @@ class UserDevices : AppCompatActivity() {
         return output
     }
 
-    private suspend fun sendListDevicesRequest(username: String) : Map<String, String> {
+    private suspend fun sendListDevicesRequest(username: String): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val devicesUrl = "$apiUrl/devices"
 
@@ -123,8 +131,7 @@ class UserDevices : AppCompatActivity() {
     }
 
     private fun getDeviceNameToDeviceIdMap(data: String): Map<String, String> {
-        var devices =
-            Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
+        var devices = Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
         var devicesMap = buildMap<String, String> {
             for ((index, device) in devices.withIndex()) {
                 var deviceId = device["device_id"].toString().replace("\"", "")
