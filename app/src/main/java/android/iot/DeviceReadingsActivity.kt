@@ -1,5 +1,6 @@
 package android.iot
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -7,6 +8,7 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ImageButton
 import android.widget.ListView
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.ktor.client.HttpClient
@@ -24,7 +26,7 @@ import java.time.format.DateTimeFormatter
 
 class DeviceReadingsActivity : AppCompatActivity() {
 
-    suspend fun sendListDeviceReadingsRequest(deviceId: String) : Map<String, String> {
+    suspend fun sendListDeviceReadingsRequest(deviceId: String): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val dataUrl = "$apiUrl/data"
 
@@ -38,6 +40,7 @@ class DeviceReadingsActivity : AppCompatActivity() {
 
         return responseMap.mapValues { it.value.toString() }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -46,8 +49,7 @@ class DeviceReadingsActivity : AppCompatActivity() {
         val backButton = findViewById<View>(R.id.backButton) as ImageButton
         backButton.setOnClickListener {
             val intentMain = Intent(
-                this@DeviceReadingsActivity,
-                UserDevices::class.java
+                this@DeviceReadingsActivity, UserDevices::class.java
             )
             this@DeviceReadingsActivity.startActivity(intentMain)
         }
@@ -57,20 +59,32 @@ class DeviceReadingsActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             val response = sendListDeviceReadingsRequest(deviceId!!)
+            val spinner = findViewById<ProgressBar>(R.id.progressBar)
+            spinner.visibility = View.GONE;
             Log.i("Content ", response.toString())
 
             val readings = getReadings(response["data"]!!)
 
-            var devicesListView = findViewById<ListView>(R.id.lvDevices)
-            val arrayAdapter: ArrayAdapter<*>
-            arrayAdapter = ArrayAdapter(this@DeviceReadingsActivity, R.layout.basic_list_element, readings)
-            devicesListView.adapter = arrayAdapter
+            if (readings.isEmpty()) {
+                val builder: AlertDialog.Builder = AlertDialog.Builder(this@DeviceReadingsActivity)
+                builder.setMessage("Please wait for device to send data!").setTitle("No readings!")
+
+                val dialog: AlertDialog = builder.create()
+                dialog.show()
+            } else {
+
+                var devicesListView = findViewById<ListView>(R.id.lvDevices)
+                val arrayAdapter: ArrayAdapter<*>
+                arrayAdapter =
+                    ArrayAdapter(this@DeviceReadingsActivity, R.layout.basic_list_element, readings)
+                devicesListView.adapter = arrayAdapter
+            }
+
         }
     }
 
     private fun getReadings(data: String): List<String> {
-        var readings =
-            Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
+        var readings = Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
         return buildList<String> {
             for (reading in readings) {
                 val timestamp = reading["time"].toString().toLong()

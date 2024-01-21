@@ -6,7 +6,9 @@ import android.iot.devices.Device
 import android.iot.devices.UserListDeviceAdapter
 import android.iot.devices.UserRecyclerViewClickListener
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageButton
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.ktor.client.HttpClient
@@ -65,6 +67,8 @@ class UserDevices : AppCompatActivity() {
 
         lifecycleScope.launch {
             val data = this@UserDevices.getData()
+            val spinner = findViewById<ProgressBar>(R.id.progressBar)
+            spinner.visibility = View.GONE;
 
             val listener = object: UserRecyclerViewClickListener() {
                 override fun onClick(index: Int) {
