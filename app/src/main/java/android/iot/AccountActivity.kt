@@ -26,7 +26,7 @@ class AccountActivity : AppCompatActivity() {
         const val LOGGED_IN = "loggedIn"
     }
 
-    suspend fun sendListDevicesRequest(username: String) : Map<String, String> {
+    private suspend fun sendListDevicesRequest(username: String) : Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val devicesUrl = "$apiUrl/devices"
 
