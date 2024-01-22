@@ -88,9 +88,9 @@ class UserDevices : AppCompatActivity() {
     private fun getData(): ArrayList<Device> {
         val output = ArrayList<Device>()
 
-        output.add(Device("Device 1", "00:00:00:00:00:00", "00:00:00:00:00:00"))
-        output.add(Device("Device 2", "00:00:00:00:00:00", "00:00:00:00:00:00"))
-        output.add(Device("Device 3", "00:00:00:00:00:00", "00:00:00:00:00:00"))
+        output.add(Device("Device 1", "00:00:00:00:00:00", "00:00:00:00:00:00", output))
+        output.add(Device("Device 2", "00:00:00:00:00:00", "00:00:00:00:00:00", output))
+        output.add(Device("Device 3", "00:00:00:00:00:00", "00:00:00:00:00:00", output))
 
         return output
     }
