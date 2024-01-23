@@ -55,7 +55,7 @@ class UserDevices : AppCompatActivity() {
         lifecycleScope.launch {
             val data = this@UserDevices.getData()
             val spinner = findViewById<ProgressBar>(R.id.progressBar)
-            spinner.visibility = View.GONE;
+            spinner.visibility = View.GONE
 
             if (data.isEmpty()) {
                 Toast.makeText(

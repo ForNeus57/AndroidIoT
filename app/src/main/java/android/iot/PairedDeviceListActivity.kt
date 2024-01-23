@@ -1,6 +1,5 @@
 package android.iot
 
-import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -8,7 +7,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.iot.lists.bluetooth.BluetoothListDeviceAdapter
 import android.iot.lists.bluetooth.Data
 import android.iot.lists.bluetooth.RecyclerViewClickListener
@@ -16,10 +14,6 @@ import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 
 class PairedDeviceListActivity : AppCompatActivity() {
 

@@ -24,7 +24,7 @@ class LoginActivity : AppCompatActivity() {
         const val USERNAME = "username"
         const val LOGGED_IN = "loggedIn"
     }
-    suspend fun sendLoginRequest(username: String, password: String) : Map<String, String> {
+    private suspend fun sendLoginRequest(username: String, password: String) : Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val loginUrl = "$apiUrl/login"
 
@@ -73,14 +73,14 @@ class LoginActivity : AppCompatActivity() {
                 this@LoginActivity,
                 AccountActivity::class.java
             )
-            var etUsername = findViewById<View>(R.id.etUsername) as EditText
-            var etPassword = findViewById<View>(R.id.etPassword) as EditText
-            var username = etUsername.text.toString()
-            var password = etPassword.text.toString()
+            val etUsername = findViewById<View>(R.id.etUsername) as EditText
+            val etPassword = findViewById<View>(R.id.etPassword) as EditText
+            val username = etUsername.text.toString()
+            val password = etPassword.text.toString()
             Log.i("Content ", "$username $password")
             lifecycleScope.launch {
-                var response = sendLoginRequest(username, password)
-                var loggedIn = response["success"] == "true"
+                val response = sendLoginRequest(username, password)
+                val loggedIn = response["success"] == "true"
                 if (loggedIn) {
                     val editor = sharedPreferences.edit()
                     editor.putString(USERNAME, username)

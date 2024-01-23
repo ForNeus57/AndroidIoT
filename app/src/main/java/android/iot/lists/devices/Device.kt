@@ -7,8 +7,8 @@ class Device(name: String, address: String, uuid: String, data: ArrayList<Device
     var data: ArrayList<Device>
 
     init {
-        this.name = name;
-        this.address = address;
+        this.name = name
+        this.address = address
         this.uuid = uuid
         this.data = data
     }

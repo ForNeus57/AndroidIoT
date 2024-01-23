@@ -5,7 +5,7 @@ class Data(name: String, address: String) {
     var address: String
 
     init {
-        this.name = name;
+        this.name = name
         this.address = address;
     }
 }

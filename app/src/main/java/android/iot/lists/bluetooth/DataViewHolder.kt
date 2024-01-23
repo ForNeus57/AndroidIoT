@@ -5,10 +5,10 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class DataViewHolder public constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    val name: TextView;
-    val address: TextView;
-    val view: View = itemView;
+class DataViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    val name: TextView
+    val address: TextView
+    val view: View = itemView
 
     init {
         this.name = itemView.findViewById(R.id.deviceName)

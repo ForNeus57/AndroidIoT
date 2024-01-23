@@ -1,14 +1,10 @@
 package android.iot.lists.bluetooth
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.iot.R
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import java.util.ArrayList
-import java.util.Collections
 
 class BluetoothListDeviceAdapter(private val data: ArrayList<Data>, val context: Context, private val listener: RecyclerViewClickListener) :
     RecyclerView.Adapter<DataViewHolder>() {
@@ -25,7 +21,7 @@ class BluetoothListDeviceAdapter(private val data: ArrayList<Data>, val context:
     }
 
     override fun onBindViewHolder(holder: DataViewHolder, position: Int) {
-        val index = holder.adapterPosition;
+        val index = holder.adapterPosition
 
         holder.name.text = data[index].name
         holder.address.text = data[index].address

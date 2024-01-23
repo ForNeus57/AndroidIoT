@@ -26,7 +26,7 @@ import java.time.format.DateTimeFormatter
 
 class DeviceReadingsActivity : AppCompatActivity() {
 
-    suspend fun sendListDeviceReadingsRequest(deviceId: String): Map<String, String> {
+    private suspend fun sendListDeviceReadingsRequest(deviceId: String): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val dataUrl = "$apiUrl/data"
 
@@ -60,7 +60,7 @@ class DeviceReadingsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val response = sendListDeviceReadingsRequest(deviceId!!)
             val spinner = findViewById<ProgressBar>(R.id.progressBar)
-            spinner.visibility = View.GONE;
+            spinner.visibility = View.GONE
             Log.i("Content ", response.toString())
 
             val readings = getReadings(response["data"]!!)
@@ -73,7 +73,7 @@ class DeviceReadingsActivity : AppCompatActivity() {
                 dialog.show()
             } else {
 
-                var devicesListView = findViewById<ListView>(R.id.lvDevices)
+                val devicesListView = findViewById<ListView>(R.id.lvDevices)
                 val arrayAdapter: ArrayAdapter<*>
                 arrayAdapter =
                     ArrayAdapter(this@DeviceReadingsActivity, R.layout.basic_list_element, readings)
@@ -84,8 +84,8 @@ class DeviceReadingsActivity : AppCompatActivity() {
     }
 
     private fun getReadings(data: String): List<String> {
-        var readings = Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
-        return buildList<String> {
+        val readings = Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
+        return buildList {
             for (reading in readings) {
                 val timestamp = reading["time"].toString().toLong()
                 val instant = Instant.ofEpochMilli(timestamp)

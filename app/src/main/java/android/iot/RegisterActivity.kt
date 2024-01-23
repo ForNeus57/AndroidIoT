@@ -19,7 +19,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 
 class RegisterActivity : AppCompatActivity() {
-    suspend fun sendRegisterRequest(username: String, password: String): Map<String, String> {
+    private suspend fun sendRegisterRequest(username: String, password: String): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val usersUrl = "$apiUrl/users"
 
@@ -57,14 +57,14 @@ class RegisterActivity : AppCompatActivity() {
                 this@RegisterActivity,
                 LoginActivity::class.java
             )
-            var etUsername = findViewById<View>(R.id.etUsername) as EditText
-            var etPassword = findViewById<View>(R.id.etPassword) as EditText
-            var username = etUsername.text.toString()
-            var password = etPassword.text.toString()
+            val etUsername = findViewById<View>(R.id.etUsername) as EditText
+            val etPassword = findViewById<View>(R.id.etPassword) as EditText
+            val username = etUsername.text.toString()
+            val password = etPassword.text.toString()
             Log.i("Content ", "$username $password")
             lifecycleScope.launch {
-                var response = sendRegisterRequest(username, password)
-                var createdAccount = response["success"] == "true"
+                val response = sendRegisterRequest(username, password)
+                val createdAccount = response["success"] == "true"
                 if (createdAccount) {
                     this@RegisterActivity.startActivity(intentLogin)
                     Log.i("Content ", "Login layout")
