@@ -9,16 +9,27 @@
 
     <TextView
         android:id="@+id/deviceName"
-        android:layout_width="wrap_content"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
         android:elegantTextHeight="true"
         android:ems="10"
         android:text="@string/device_name"
         android:textSize="20sp"
         android:textStyle="bold" />
+
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_above="@+id/uuid"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/deviceName"
+        android:background="@drawable/form_back_button"
+        android:contentDescription="@string/remove_item"
+        android:src="@drawable/trash" />
 
     <View
         android:id="@+id/divider"
@@ -29,11 +40,12 @@
 
     <TextView
         android:id="@+id/macAddress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="149dp"
+        android:layout_height="53dp"
         android:layout_above="@+id/divider"
         android:layout_below="@+id/deviceName"
         android:layout_alignParentStart="true"
+        android:layout_marginTop="0dp"
         android:ems="10"
         android:text="@string/mac"
         android:textColor="@color/main" />
@@ -46,6 +58,8 @@
         android:layout_above="@+id/divider"
         android:layout_below="@+id/deviceName"
         android:layout_alignParentEnd="true"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="-1dp"
         android:ems="10"
         android:text="@string/uuid"
         android:textColor="@color/main" />

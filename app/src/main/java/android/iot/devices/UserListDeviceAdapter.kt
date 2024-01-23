@@ -30,10 +30,20 @@ class UserListDeviceAdapter(private val data: ArrayList<Device>, val context: Co
             listener.onClick(index)
         }
 
+        holder.button.setOnClickListener {
+            this.unBindTheDevice(index, data[index].uuid, data[index].address, data[index].name)
+            data[index].data.removeAt(data[index].data.size - 1)
+            this.notifyDataSetChanged()
+        }
     }
 
     override fun getItemCount(): Int {
         return data.size
     }
 
+
+    private fun unBindTheDevice(index: Int, uuid: String, mac: String, name: String) {
+        //  TODO:
+        //  Unbind the device from the user, via API
+    }
 }
