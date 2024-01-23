@@ -110,7 +110,7 @@ class UserDevices : AppCompatActivity() {
         val devices = getDeviceNameToDeviceIdMap(response["data"]!!)
 
         for (device in devices) {
-            output.add(Device(device.key, device.value, device.value))
+            output.add(Device(device.key, device.value, device.value, output))
         }
         return output
     }

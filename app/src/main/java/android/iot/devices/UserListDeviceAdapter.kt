@@ -4,11 +4,25 @@ import android.content.Context
 import android.iot.R
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
-import java.util.ArrayList
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.request
+import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 
-class UserListDeviceAdapter(private val data: ArrayList<Device>, val context: Context, private val listener: UserRecyclerViewClickListener) :
-    RecyclerView.Adapter<DeviceViewHolder>() {
+class UserListDeviceAdapter(
+    private val data: ArrayList<Device>,
+    val context: Context,
+    private val listener: UserRecyclerViewClickListener
+) : RecyclerView.Adapter<DeviceViewHolder>() {
+
+    val username = context.getSharedPreferences(
+        "sharedPrefs", Context.MODE_PRIVATE
+    ).getString("username", null)!!
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceViewHolder {
         val context = parent.context
@@ -31,9 +45,17 @@ class UserListDeviceAdapter(private val data: ArrayList<Device>, val context: Co
         }
 
         holder.button.setOnClickListener {
-            this.unBindTheDevice(index, data[index].uuid, data[index].address, data[index].name)
-            data[index].data.removeAt(data[index].data.size - 1)
-            this.notifyDataSetChanged()
+            if (this.unBindTheDevice(
+                    index, data[index].uuid, data[index].address, data[index].name
+                )
+            ) {
+                data[index].data.removeAt(index)
+                this.notifyDataSetChanged()
+            } else {
+                Toast.makeText(
+                    context, "Couldn't delete!", Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
@@ -42,8 +64,28 @@ class UserListDeviceAdapter(private val data: ArrayList<Device>, val context: Co
     }
 
 
-    private fun unBindTheDevice(index: Int, uuid: String, mac: String, name: String) {
-        //  TODO:
-        //  Unbind the device from the user, via API
+    private fun unBindTheDevice(index: Int, uuid: String, mac: String, name: String): Boolean {
+        return runBlocking {
+            val response = sendUnBindDeviceRequest(uuid)
+            return@runBlocking response["success"] == "true"
+        }
+    }
+
+    private suspend fun sendUnBindDeviceRequest(deviceId: String): Map<String, String> {
+        val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
+        val devicesUrl = "$apiUrl/devices"
+
+        val response = HttpClient(CIO).request(devicesUrl) {
+            method = io.ktor.http.HttpMethod.Delete
+            headers.append("Content-Type", "application/json")
+            url {
+                parameters.append("device_id", deviceId)
+                parameters.append("username", username)
+            }
+        }
+
+        val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
+
+        return responseMap.mapValues { it.value.toString() }
     }
 }
