@@ -2,6 +2,7 @@ package android.iot.lists.devices
 
 import android.content.Context
 import android.iot.R
+import android.iot.lists.ListViewClickListener
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
@@ -17,7 +18,7 @@ import kotlinx.serialization.json.jsonObject
 class UserListDeviceAdapter(
     private val data: ArrayList<Device>,
     private val context: Context,
-    private val listener: UserRecyclerViewClickListener
+    private val listener: ListViewClickListener
 ) : RecyclerView.Adapter<DeviceViewHolder>() {
 
     val username = context.getSharedPreferences(

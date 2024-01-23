@@ -2,11 +2,12 @@ package android.iot.lists.bluetooth
 
 import android.content.Context
 import android.iot.R
+import android.iot.lists.ListViewClickListener
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 
-class BluetoothListDeviceAdapter(private val data: ArrayList<Data>, val context: Context, private val listener: RecyclerViewClickListener) :
+class BluetoothListDeviceAdapter(private val data: ArrayList<Data>, val context: Context, private val listener: ListViewClickListener) :
     RecyclerView.Adapter<DataViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataViewHolder {

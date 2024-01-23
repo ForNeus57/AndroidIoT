@@ -7,9 +7,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.iot.lists.ListViewClickListener
 import android.iot.lists.bluetooth.BluetoothListDeviceAdapter
 import android.iot.lists.bluetooth.Data
-import android.iot.lists.bluetooth.RecyclerViewClickListener
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.Toast
@@ -36,7 +36,7 @@ class PairedDeviceListActivity : AppCompatActivity() {
             this@PairedDeviceListActivity.startActivity(intentMain)
         }
 
-        val listener = object : RecyclerViewClickListener() {
+        val listener = object : ListViewClickListener() {
             override fun onClick(index: Int) {
                 super.onClick(index)
 

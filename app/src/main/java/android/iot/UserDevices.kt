@@ -1,9 +1,9 @@
 package android.iot
 
 import android.content.Intent
+import android.iot.lists.ListViewClickListener
 import android.iot.lists.devices.Device
 import android.iot.lists.devices.UserListDeviceAdapter
-import android.iot.lists.devices.UserRecyclerViewClickListener
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
@@ -63,7 +63,7 @@ class UserDevices : AppCompatActivity() {
                 ).show()
             }
 
-            val listener = object : UserRecyclerViewClickListener() {
+            val listener = object : ListViewClickListener() {
                 override fun onClick(index: Int) {
                     super.onClick(index)
 
