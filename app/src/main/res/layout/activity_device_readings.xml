@@ -36,6 +36,16 @@
             android:textColor="#010203"
             android:text="Readings from your device:" />
 
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar"
+            android:progressDrawable="@drawable/circular_progress_bar"
+            android:layout_below="@+id/yourDevices"
+            android:layout_gravity="center"
+            android:layout_marginTop="170dp" />
+
     <ListView
         android:id="@+id/lvDevices"
         android:layout_width="match_parent"
