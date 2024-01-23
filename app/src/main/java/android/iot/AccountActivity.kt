@@ -15,6 +15,22 @@ class AccountActivity : AppCompatActivity() {
         const val LOGGED_IN = "loggedIn"
     }
 
+
+    private suspend fun sendListDevicesRequest(username: String) : Map<String, String> {
+        val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
+        val devicesUrl = "$apiUrl/devices"
+
+        val response = HttpClient(CIO).request(devicesUrl) {
+            method = io.ktor.http.HttpMethod.Get
+            headers.append("Content-Type", "application/json")
+            url { parameters.append("username", username) }
+        }
+
+        val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
+
+        return responseMap.mapValues { it.value.toString() }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

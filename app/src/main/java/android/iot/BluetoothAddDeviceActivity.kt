@@ -20,6 +20,14 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.request
+import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import org.json.JSONObject
 import java.io.OutputStream
 import java.security.MessageDigest
@@ -67,8 +75,9 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         this.deviceMac = intent.getStringExtra("deviceMac") ?: ""
         val preferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
         this.username = preferences.getString(USERNAME, "") ?: ""
-        this.deviceId = getDeviceId(this.deviceMac, this.username)
-
+        runBlocking {
+            this@BluetoothAddDeviceActivity.deviceId = getDeviceId(this@BluetoothAddDeviceActivity.deviceMac, this@BluetoothAddDeviceActivity.username)
+        }
         val ssid = findViewById<View>(R.id.ssidEditText) as EditText
         val password = findViewById<View>(R.id.wifiPasswordEditTextPassword) as EditText
         val wifiConnectionStatusText = findViewById<View>(R.id.connectionStatusTextView) as TextView
@@ -208,9 +217,31 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
     }
 
 
-    private fun getDeviceId(macAddress: String, username: String): String {
-        //  TODO: Implement this function
-        return ""
+    private suspend fun getDeviceId(macAddress: String, username: String): String {
+        val data = sendListDevicesRequest(username)["data"]!!
+        return getDeviceIdFromMac(data, macAddress)
+    }
+
+    private suspend fun sendListDevicesRequest(username: String) : Map<String, String> {
+        val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
+        val devicesUrl = "$apiUrl/devices"
+
+        val response = HttpClient(CIO).request(devicesUrl) {
+            method = io.ktor.http.HttpMethod.Get
+            headers.append("Content-Type", "application/json")
+            url { parameters.append("username", username) }
+        }
+
+        val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
+
+        return responseMap.mapValues { it.value.toString() }
+    }
+
+    private fun getDeviceIdFromMac(data: String, macAddress: String): String {
+        var devices =
+            Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
+        return devices.firstOrNull() { it["MAC"].toString().replace("\"", "") == macAddress }?.get("device_id")
+            .toString()
     }
 
 }

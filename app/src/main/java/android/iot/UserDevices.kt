@@ -118,7 +118,6 @@ class UserDevices : AppCompatActivity() {
     private suspend fun sendListDevicesRequest(username: String): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val devicesUrl = "$apiUrl/devices"
-
         val response = HttpClient(CIO).request(devicesUrl) {
             method = io.ktor.http.HttpMethod.Get
             headers.append("Content-Type", "application/json")
