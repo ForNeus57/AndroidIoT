@@ -45,7 +45,7 @@ class UserListDeviceAdapter(
         }
 
         holder.button.setOnClickListener {
-            if (true) {
+            if (true) { //  Marker so I don't forget to check if unbind was successful on device lever
                 if (this.unBindTheDevice(data[index].uuid)) {
                     data[index].data.removeAt(index)
                     this.notifyItemRemoved(index)

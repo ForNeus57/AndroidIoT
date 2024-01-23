@@ -17,6 +17,9 @@ import androidx.appcompat.app.AppCompatActivity
 
 class PairedDeviceListActivity : AppCompatActivity() {
 
+    /**
+     * List of device MAC addresses that are forbidden to be shown in the list. I.E the devices that are already paired with the user.
+     */
     private var forbiddenDevicesAddresses = ArrayList<String>()
     private var data = ArrayList<Data>()
     private lateinit var receiver: BroadcastReceiver
@@ -60,10 +63,18 @@ class PairedDeviceListActivity : AppCompatActivity() {
         this.fillData(adapter)
     }
 
+    /**
+     * Method that fills the data array with discovered devices from nearby surrounding.
+     *
+     * @param listAdapter The adapter that will be used to display the data. We need it to change the number of shown elements in View list.
+     */
     private fun fillData(listAdapter: BluetoothListDeviceAdapter) {
+        //  Get the adapter to perform bluetooth actions like connection / device discovery ...
+
         val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
         val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter ?: run {
-            //  Device doesn't support Bluetooth
+            //  Device doesn't support Bluetooth, i.e. does not have the ability to connect to bluetooth devices, bc it doesn't have bluetooth hardware.
+            //  Inform the user and exit the View.
             Toast.makeText(
                 this, "Your device does not have Bluetooth!", Toast.LENGTH_LONG
             ).show()
@@ -71,6 +82,7 @@ class PairedDeviceListActivity : AppCompatActivity() {
             return
         }
 
+        //  Check if bluetooth is enabled, if not inform the user to enable it.
         if (!bluetoothAdapter.isEnabled) {
             try {
                 startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1)
@@ -125,6 +137,9 @@ class PairedDeviceListActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Unregister the broadcast receiver when the activity is destroyed.
+     */
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(receiver)
