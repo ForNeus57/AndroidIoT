@@ -1,4 +1,4 @@
-package android.iot.devices
+package android.iot.lists.devices
 
 class Device(name: String, address: String, uuid: String, data: ArrayList<Device>) {
     var name: String

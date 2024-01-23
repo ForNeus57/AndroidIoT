@@ -1,4 +1,4 @@
-package android.iot.bluetooth
+package android.iot.lists.bluetooth
 
 class Data(name: String, address: String) {
     var name: String

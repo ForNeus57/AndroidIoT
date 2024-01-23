@@ -1,69 +1,27 @@
 package android.iot
 
-import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.iot.bluetooth.BluetoothListDeviceAdapter
-import android.iot.bluetooth.Data
-import android.iot.bluetooth.RecyclerViewClickListener
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
+import android.iot.lists.bluetooth.BluetoothListDeviceAdapter
+import android.iot.lists.bluetooth.Data
+import android.iot.lists.bluetooth.RecyclerViewClickListener
 import android.os.Bundle
-import android.util.Log
 import android.widget.ImageButton
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class PairedDeviceListActivity : AppCompatActivity() {
 
     private var forbiddenDevicesAddresses = ArrayList<String>()
-
-    private var requestBluetooth =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                //granted
-            } else {
-                //deny
-            }
-        }
-
-    private val requestMultiplePermissions =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            permissions.entries.forEach {
-                Log.d("test006", "${it.key} = ${it.value}")
-            }
-        }
-
-    private val receiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            if (BluetoothDevice.ACTION_FOUND == action) {
-                val device: BluetoothDevice? =
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                val deviceName = if (ActivityCompat.checkSelfPermission(
-                        this@PairedDeviceListActivity,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return
-                } else {
-                    device?.name
-                }
-            }
-        }
-    }
+    private var data = ArrayList<Data>()
+    private lateinit var receiver: BroadcastReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,9 +38,7 @@ class PairedDeviceListActivity : AppCompatActivity() {
             this@PairedDeviceListActivity.startActivity(intentMain)
         }
 
-        val data = this.getData()
-
-        val listener = object: RecyclerViewClickListener() {
+        val listener = object : RecyclerViewClickListener() {
             override fun onClick(index: Int) {
                 super.onClick(index)
 
@@ -96,64 +52,81 @@ class PairedDeviceListActivity : AppCompatActivity() {
             }
         }
 
+        val adapter = BluetoothListDeviceAdapter(this.data, this, listener)
 
-        val adapter = BluetoothListDeviceAdapter(data, this, listener)
-
-        val recyclerView = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.itemsList)
+        val recyclerView =
+            findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.itemsList)
 
         recyclerView.adapter = adapter
         recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
+        this.fillData(adapter)
     }
 
-    private fun getData(): ArrayList<Data> {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            requestMultiplePermissions.launch(
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                )
-            )
-        } else {
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            requestBluetooth.launch(enableBtIntent)
+    private fun fillData(listAdapter: BluetoothListDeviceAdapter) {
+        val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
+        val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter ?: run {
+            //  Device doesn't support Bluetooth
+            Toast.makeText(
+                this, "Your device does not have Bluetooth!", Toast.LENGTH_LONG
+            ).show()
+            finish()
+            return
         }
-
-        val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
         if (!bluetoothAdapter.isEnabled) {
-            val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                return ArrayList()
+            try {
+                startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1)
+            } catch (e: SecurityException) {
+                //  User rejected the request
+                Toast.makeText(
+                    this, "User rejected ask for permission pop-up!", Toast.LENGTH_LONG
+                ).show()
+                finish()
+                return
             }
-            startActivityForResult(enableBluetoothIntent, 1)
         }
 
-        val discoverDevicesIntent = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        registerReceiver(receiver, discoverDevicesIntent)
+        this.receiver = object : BroadcastReceiver() {
+
+            override fun onReceive(context: Context, intent: Intent) {
+                when(intent.action) {
+                    BluetoothDevice.ACTION_FOUND -> {
+                        try {
+                            val device: BluetoothDevice? =
+                                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                            val deviceName = device?.name ?: "Unknown"
+                            val deviceHardwareAddress = device?.address ?: ""
+                            if (deviceHardwareAddress != "" && deviceHardwareAddress !in forbiddenDevicesAddresses) {
+                                data.add(Data(deviceName, deviceHardwareAddress))
+                                listAdapter.notifyItemInserted(data.size - 1)
+                            }
+                        } catch (e: SecurityException) {
+                            //  User rejected the request
+                            return
+                        }
+                    }
+                }
+            }
+        }
+
+        val discoveryFilter = IntentFilter()
+
+        discoveryFilter.addAction(BluetoothDevice.ACTION_FOUND)
+        registerReceiver(receiver, discoveryFilter)
+
         try {
+            if (bluetoothAdapter.isDiscovering()) {
+                bluetoothAdapter.cancelDiscovery()
+            }
             bluetoothAdapter.startDiscovery()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Log.wtf("android.iot", e.toString())
+        } catch (e: SecurityException) {
+            //  User rejected the request
+            Toast.makeText(
+                this, "Started Discovery process rejected due to user!", Toast.LENGTH_LONG
+            ).show()
+            bluetoothAdapter.cancelDiscovery()
+            return
         }
-
-        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-
-        val output =  ArrayList(pairedDevices?.filter { device -> device.address !in this.forbiddenDevicesAddresses }?.map { Data(it.name, it.address) }?.toList() ?: ArrayList<Data>())
-
-        //  TODO: Remove this
-        if (output.size == 0) {
-            output.add(Data("Example1", "00:11:22:33:FF:EE"))
-            output.add(Data("Example2", "01:11:22:33:FF:EE"))
-            output.add(Data("Example3", "02:11:22:33:FF:EE"))
-            output.add(Data("Example4", "03:11:22:33:FF:EE"))
-        }
-
-        return output
     }
 
     override fun onDestroy() {

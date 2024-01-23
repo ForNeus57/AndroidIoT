@@ -1,4 +1,4 @@
-package android.iot.bluetooth
+package android.iot.lists.bluetooth
 
 import android.annotation.SuppressLint
 import android.content.Context

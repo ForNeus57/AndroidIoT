@@ -238,9 +238,9 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
     }
 
     private fun getDeviceIdFromMac(data: String, macAddress: String): String {
-        var devices =
+        val devices =
             Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
-        return devices.firstOrNull() { it["MAC"].toString().replace("\"", "") == macAddress }?.get("device_id")
+        return devices.firstOrNull { it["MAC"].toString().replace("\"", "") == macAddress }?.get("device_id")
             .toString()
     }
 

@@ -1,4 +1,4 @@
-package android.iot.devices
+package android.iot.lists.devices
 
 import android.content.Context
 import android.iot.R
@@ -16,7 +16,7 @@ import kotlinx.serialization.json.jsonObject
 
 class UserListDeviceAdapter(
     private val data: ArrayList<Device>,
-    val context: Context,
+    private val context: Context,
     private val listener: UserRecyclerViewClickListener
 ) : RecyclerView.Adapter<DeviceViewHolder>() {
 
@@ -37,7 +37,6 @@ class UserListDeviceAdapter(
         val index = holder.adapterPosition;
 
         holder.name.text = data[index].name
-        holder.address.text = data[index].address
         holder.uuid.text = data[index].uuid
 
         holder.view.setOnClickListener {
@@ -45,10 +44,7 @@ class UserListDeviceAdapter(
         }
 
         holder.button.setOnClickListener {
-            if (this.unBindTheDevice(
-                    index, data[index].uuid, data[index].address, data[index].name
-                )
-            ) {
+            if (this.unBindTheDevice(data[index].uuid)) {
                 data[index].data.removeAt(index)
                 this.notifyDataSetChanged()
             } else {
@@ -64,7 +60,7 @@ class UserListDeviceAdapter(
     }
 
 
-    private fun unBindTheDevice(index: Int, uuid: String, mac: String, name: String): Boolean {
+    private fun unBindTheDevice(uuid: String): Boolean {
         return runBlocking {
             val response = sendUnBindDeviceRequest(uuid)
             return@runBlocking response["success"] == "true"

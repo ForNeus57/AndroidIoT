@@ -2,9 +2,9 @@ package android.iot
 
 import android.app.AlertDialog
 import android.content.Intent
-import android.iot.devices.Device
-import android.iot.devices.UserListDeviceAdapter
-import android.iot.devices.UserRecyclerViewClickListener
+import android.iot.lists.devices.Device
+import android.iot.lists.devices.UserListDeviceAdapter
+import android.iot.lists.devices.UserRecyclerViewClickListener
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
@@ -45,21 +45,12 @@ class UserDevices : AppCompatActivity() {
 
         val addButton = findViewById<ImageButton>(R.id.addDevice)
         addButton.setOnClickListener {
-            if (getSharedPreferences(SHARED_PREFS, MODE_PRIVATE).getBoolean(LOGGED_IN, false)) {
-                val intentPairedDeviceList = Intent(
-                    this@UserDevices, PairedDeviceListActivity::class.java
-                )
+            val intentPairedDeviceList = Intent(
+                this@UserDevices, PairedDeviceListActivity::class.java
+            )
 
-                intentPairedDeviceList.putExtra("devicesAddresses", devices)
-                this@UserDevices.startActivity(intentPairedDeviceList)
-            } else {
-                //  User is not logged in
-                val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-                builder.setMessage("Please log in to add a device!").setTitle("Not logged in!")
-
-                val dialog: AlertDialog = builder.create()
-                dialog.show()
-            }
+            intentPairedDeviceList.putExtra("devicesAddresses", devices)
+            this@UserDevices.startActivity(intentPairedDeviceList)
         }
 
         lifecycleScope.launch {
@@ -131,11 +122,11 @@ class UserDevices : AppCompatActivity() {
     }
 
     private fun getDeviceNameToDeviceIdMap(data: String): Map<String, String> {
-        var devices = Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
-        var devicesMap = buildMap<String, String> {
+        val devices = Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
+        val devicesMap = buildMap {
             for ((index, device) in devices.withIndex()) {
-                var deviceId = device["device_id"].toString().replace("\"", "")
-                put("Device " + index.toString(), deviceId)
+                val deviceId = device["device_id"].toString().replace("\"", "")
+                put("Device $index", deviceId)
             }
         }
         return devicesMap
