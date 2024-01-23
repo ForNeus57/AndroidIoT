@@ -44,13 +44,15 @@ class UserListDeviceAdapter(
         }
 
         holder.button.setOnClickListener {
-            if (this.unBindTheDevice(data[index].uuid)) {
-                data[index].data.removeAt(index)
-                this.notifyDataSetChanged()
-            } else {
-                Toast.makeText(
-                    context, "Couldn't delete!", Toast.LENGTH_LONG
-                ).show()
+            if (true) {
+                if (this.unBindTheDevice(data[index].uuid)) {
+                    data[index].data.removeAt(index)
+                    this.notifyItemRemoved(index)
+                } else {
+                    Toast.makeText(
+                        context, "Couldn't delete!", Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }

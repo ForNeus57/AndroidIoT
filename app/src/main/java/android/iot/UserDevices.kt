@@ -1,6 +1,5 @@
 package android.iot
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.iot.lists.devices.Device
 import android.iot.lists.devices.UserListDeviceAdapter
@@ -103,6 +102,7 @@ class UserDevices : AppCompatActivity() {
         for (device in devices) {
             output.add(Device(device.key, device.value, device.value, output))
         }
+
         return output
     }
 

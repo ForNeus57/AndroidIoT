@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -17,9 +18,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.request
@@ -41,34 +44,12 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         const val LOGGED_IN = "loggedIn"
     }
 
-    private var ssid = "ssid"
-    private var password = "password"
     private var username = ""
     private var deviceId = ""
     private var deviceMac = ""
 
     private var history = HashSet<String>()
 
-
-    private lateinit var bluetoothAdapter: BluetoothAdapter
-
-    private var requestBluetooth =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                //granted
-            } else {
-                //deny
-            }
-        }
-
-    private val requestMultiplePermissions =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            permissions.entries.forEach {
-                Log.d("test006", "${it.key} = ${it.value}")
-            }
-        }
-
-    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bluetooth_add_device)
@@ -91,47 +72,38 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
             this@BluetoothAddDeviceActivity.startActivity(intentMain)
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            requestMultiplePermissions.launch(
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                )
-            )
-        } else {
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            requestBluetooth.launch(enableBtIntent)
+        val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
+        val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter ?: run {
+            //  Device doesn't support Bluetooth
+            Toast.makeText(
+                this, "Your device does not have Bluetooth!", Toast.LENGTH_LONG
+            ).show()
+            finish()
+            return
         }
-
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
         if (!bluetoothAdapter.isEnabled) {
-            val enableBluetoothIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+            try {
+                startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1)
+            } catch (e: SecurityException) {
+                //  User rejected the request
+                Toast.makeText(
+                    this, "User rejected ask for permission pop-up!", Toast.LENGTH_LONG
+                ).show()
+                finish()
                 return
             }
-            startActivityForResult(enableBluetoothIntent, 1)
         }
 
-        val discoverDevicesIntent = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        registerReceiver(receiver, discoverDevicesIntent)
-        try {
-            bluetoothAdapter.startDiscovery()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Log.wtf("android.iot", e.toString())
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, arrayOf(
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                ), 1)
+            return
         }
 
         connect.setOnClickListener {
-            this.ssid = ssid.text.toString()
-            this.password = password.text.toString()
-
-            ssid.text.clear()
-            password.text.clear()
 
             val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
             val list = pairedDevices?.filter { it.address == this.deviceMac }?.map { it.address }
@@ -145,7 +117,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
                 if (socket.isConnected) {
                     val writer: OutputStream = socket.outputStream
 
-                    writer.write(packToJSON().toByteArray())
+                    writer.write(packToJSON(ssid.text.toString(), password.text.toString()).toByteArray())
 
                     val reader = socket.inputStream
 
@@ -164,6 +136,9 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
                     writer.close()
                     reader.close()
                     socket.close()
+
+                    ssid.text.clear()
+                    password.text.clear()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -172,39 +147,8 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         }
     }
 
-    private val receiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            if (BluetoothDevice.ACTION_FOUND == action) {
-                val device: BluetoothDevice? =
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                val deviceName = if (ActivityCompat.checkSelfPermission(
-                        this@BluetoothAddDeviceActivity,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return
-                } else {
-                    device?.name
-                }
-            }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(receiver)
-    }
-
-    private fun packToJSON(): String {
-        return "{\"username\":\"${this.username}\",\"ssid\":\"${this.ssid}\",\"password\":\"${this.password}\",\"hash\":\"${this.getHash(System.currentTimeMillis().toString())}\"}" + Char(
+    private fun packToJSON(ssid: String, password: String): String {
+        return "{\"username\":\"${this.username}\",\"ssid\":\"${ssid}\",\"password\":\"${password}\",\"hash\":\"${this.getHash(System.currentTimeMillis().toString())}\"}" + Char(
             10
         )
     }
