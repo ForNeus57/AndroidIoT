@@ -19,10 +19,10 @@ import androidx.core.content.ContextCompat
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.request
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import org.json.JSONObject
 import java.io.OutputStream
@@ -53,7 +53,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         this.username = preferences.getString(USERNAME, "") ?: ""
         this.sessionId = preferences.getString(SESSION_ID, "") ?: ""
         runBlocking {
-            this@BluetoothAddDeviceActivity.deviceId = getDeviceId(this@BluetoothAddDeviceActivity.deviceMac, this@BluetoothAddDeviceActivity.username, this@BluetoothAddDeviceActivity.sessionId)
+            this@BluetoothAddDeviceActivity.deviceId = getDeviceId(this@BluetoothAddDeviceActivity.deviceMac)
         }
         val ssid = findViewById<View>(R.id.ssidEditText) as EditText
         val password = findViewById<View>(R.id.wifiPasswordEditTextPassword) as EditText
@@ -150,33 +150,22 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         return digest.fold(StringBuilder()) { sb, it -> sb.append("%02x".format(it)) }.toString()
     }
 
-
-    private suspend fun getDeviceId(macAddress: String, username: String, session_id: String): String {
-        val data = sendListDevicesRequest(username, session_id)["data"]!!
-        return getDeviceIdFromMac(data, macAddress)
+    private suspend fun getDeviceId(macAddress: String): String {
+        return sendCreateUserDeviceBindingRequest(macAddress)["device_id"]!!.replace("\"", "")
     }
 
-    private suspend fun sendListDevicesRequest(username: String, session_id: String) : Map<String, String> {
+    private suspend fun sendCreateUserDeviceBindingRequest(macAddress: String) : Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val devicesUrl = "$apiUrl/devices"
 
         val response = HttpClient(CIO).request(devicesUrl) {
-            method = io.ktor.http.HttpMethod.Get
+            method = io.ktor.http.HttpMethod.Post
             headers.append("Content-Type", "application/json")
-            headers.append("session_id", session_id)
-            url { parameters.append("username", username) }
+            setBody("""{"username":"$username", "MAC":"$macAddress", "session_id":"$sessionId"}""")
         }
 
         val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
 
         return responseMap.mapValues { it.value.toString() }
     }
-
-    private fun getDeviceIdFromMac(data: String, macAddress: String): String {
-        val devices =
-            Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
-        return devices.firstOrNull { it["MAC"].toString().replace("\"", "") == macAddress }?.get("device_id")
-            .toString()
-    }
-
 }
