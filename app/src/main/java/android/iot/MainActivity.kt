@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
  * I.E. the buttons to add a device and to go to the account page.
  */
 class MainActivity : AppCompatActivity() {
+    //  This is a companion object. It is similar to static variables in Java.
     companion object {
         const val SHARED_PREFS = "sharedPrefs"
         const val USERNAME = "username"

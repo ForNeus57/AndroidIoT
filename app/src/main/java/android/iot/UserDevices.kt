@@ -28,7 +28,7 @@ class UserDevices : AppCompatActivity() {
         const val LOGGED_IN = "loggedIn"
     }
 
-    private var devices = ArrayList<String>()
+    private var forbiddenDevices = ArrayList<String>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_devices)
@@ -48,7 +48,7 @@ class UserDevices : AppCompatActivity() {
                 this@UserDevices, PairedDeviceListActivity::class.java
             )
 
-            intentPairedDeviceList.putExtra("devicesAddresses", devices)
+            intentPairedDeviceList.putExtra("devicesAddresses", forbiddenDevices)
             this@UserDevices.startActivity(intentPairedDeviceList)
         }
 
@@ -77,7 +77,7 @@ class UserDevices : AppCompatActivity() {
                 }
             }
 
-            this@UserDevices.devices = data.map { it.uuid } as ArrayList<String>
+            this@UserDevices.forbiddenDevices = data.map { it.uuid } as ArrayList<String>
 
             val adapter = UserListDeviceAdapter(data, this@UserDevices, listener)
 
@@ -88,7 +88,6 @@ class UserDevices : AppCompatActivity() {
             recyclerView.layoutManager =
                 androidx.recyclerview.widget.LinearLayoutManager(this@UserDevices)
         }
-
     }
 
 
@@ -102,7 +101,7 @@ class UserDevices : AppCompatActivity() {
         val devices = getDeviceNameToDeviceIdMap(response["data"]!!)
 
         for (device in devices) {
-            output.add(Device(device.key, device.value, device.value, output))
+            output.add(Device(device.key, device.value, output))
         }
 
         return output

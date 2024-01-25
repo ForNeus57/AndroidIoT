@@ -78,8 +78,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         //  Check if bluetooth is enabled, if not inform / ask the user to enable it.
         if (!bluetoothAdapter.isEnabled) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT), 2)
                     Toast.makeText(
                         this, "Please enable bluetooth connect to add device!", Toast.LENGTH_LONG
@@ -88,7 +87,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
                     return
                 }
             }
-            startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1)
+            ActivityCompat.startActivityForResult(this, Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1, null)
         }
 
         connect.setOnClickListener {
