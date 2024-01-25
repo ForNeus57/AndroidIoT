@@ -7,13 +7,17 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.iot.lists.ListViewClickListener
 import android.iot.lists.bluetooth.BluetoothListDeviceAdapter
 import android.iot.lists.bluetooth.Data
+import android.os.Build
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class PairedDeviceListActivity : AppCompatActivity() {
 
@@ -76,6 +80,7 @@ class PairedDeviceListActivity : AppCompatActivity() {
         val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter ?: run {
             //  Device doesn't support Bluetooth, i.e. does not have the ability to connect to bluetooth devices, bc it doesn't have bluetooth hardware.
             //  Inform the user and exit the View.
+            //  aka. bluetoothManager.adapter is null
             Toast.makeText(
                 this, "Your device does not have Bluetooth!", Toast.LENGTH_LONG
             ).show()
@@ -83,18 +88,20 @@ class PairedDeviceListActivity : AppCompatActivity() {
             return
         }
 
-        //  Check if bluetooth is enabled, if not inform the user to enable it.
+        //  Check if bluetooth is enabled, if not inform / ask the user to enable it.
         if (!bluetoothAdapter.isEnabled) {
-            try {
-                startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1)
-            } catch (e: SecurityException) {
-                //  User rejected the request
-                Toast.makeText(
-                    this, "User rejected ask for permission pop-up!", Toast.LENGTH_LONG
-                ).show()
-                finish()
-                return
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                {
+                    ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT), 2)
+                    Toast.makeText(
+                        this, "Please enable bluetooth connect to add device!", Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                    return
+                }
             }
+            startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1)
         }
 
         this.receiver = object : BroadcastReceiver() {
@@ -102,17 +109,35 @@ class PairedDeviceListActivity : AppCompatActivity() {
             override fun onReceive(context: Context, intent: Intent) {
                 when(intent.action) {
                     BluetoothDevice.ACTION_FOUND -> {
-                        try {
-                            val device: BluetoothDevice? =
-                                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                            val deviceName = device?.name ?: "Unknown"
-                            val deviceHardwareAddress = device?.address ?: ""
-                            if (deviceHardwareAddress != "" && deviceHardwareAddress !in forbiddenDevicesAddresses) {
-                                data.add(Data(deviceName, deviceHardwareAddress))
-                                listAdapter.notifyItemInserted(data.size - 1)
+                        if (ContextCompat.checkSelfPermission(this@PairedDeviceListActivity, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                            {
+                                ActivityCompat.requestPermissions(this@PairedDeviceListActivity, arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT), 2)
+                                Toast.makeText(
+                                    this@PairedDeviceListActivity, "Please enable bluetooth to add device!", Toast.LENGTH_LONG
+                                ).show()
+                                finish()
+                                return
                             }
-                        } catch (_: SecurityException) {
                         }
+                        val device: BluetoothDevice? =
+                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                        val deviceName = device?.name ?: "Unknown"
+                        val deviceHardwareAddress = device?.address ?: ""
+                        if (deviceHardwareAddress != "" && deviceHardwareAddress !in forbiddenDevicesAddresses) {
+                            data.add(Data(deviceName, deviceHardwareAddress))
+                            listAdapter.notifyItemInserted(data.size - 1)
+                        }
+                    }
+                    BluetoothAdapter.ACTION_DISCOVERY_STARTED -> {
+                        Toast.makeText(
+                            this@PairedDeviceListActivity, "Discovery started!", Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                        Toast.makeText(
+                            this@PairedDeviceListActivity, "Discovery finished!", Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
             }
@@ -121,21 +146,15 @@ class PairedDeviceListActivity : AppCompatActivity() {
         val discoveryFilter = IntentFilter()
 
         discoveryFilter.addAction(BluetoothDevice.ACTION_FOUND)
+        discoveryFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
+        discoveryFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         registerReceiver(receiver, discoveryFilter)
 
-        try {
-            if (bluetoothAdapter.isDiscovering()) {
-                bluetoothAdapter.cancelDiscovery()
-            }
-            bluetoothAdapter.startDiscovery()
-        } catch (e: SecurityException) {
-            //  User rejected the request
-            Toast.makeText(
-                this, "Started Discovery process rejected due to user!", Toast.LENGTH_LONG
-            ).show()
+
+        if (bluetoothAdapter.isDiscovering()) {
             bluetoothAdapter.cancelDiscovery()
-            return
         }
+        bluetoothAdapter.startDiscovery()
     }
 
     /**
