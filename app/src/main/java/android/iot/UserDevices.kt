@@ -121,7 +121,10 @@ class UserDevices : AppCompatActivity() {
             method = io.ktor.http.HttpMethod.Get
             headers.append("Content-Type", "application/json")
             headers.append("session_id", sessionId)
-            url { parameters.append("username", username) }
+            url {
+                parameters.append("username", username)
+                protocol = io.ktor.http.URLProtocol.HTTPS
+            }
         }
 
         val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()

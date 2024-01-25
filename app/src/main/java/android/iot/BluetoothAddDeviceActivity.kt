@@ -195,6 +195,9 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
             method = io.ktor.http.HttpMethod.Post
             headers.append("Content-Type", "application/json")
             setBody("""{"username":"$username", "MAC":"$macAddress", "session_id":"$sessionId"}""")
+            url {
+                protocol = io.ktor.http.URLProtocol.HTTPS
+            }
         }
 
         val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
@@ -213,6 +216,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
             url {
                 parameters.append("device_id", deviceId)
                 parameters.append("username", username)
+                protocol = io.ktor.http.URLProtocol.HTTPS
             }
         }
 

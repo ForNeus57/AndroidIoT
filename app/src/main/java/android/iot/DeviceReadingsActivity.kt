@@ -41,6 +41,7 @@ class DeviceReadingsActivity : AppCompatActivity() {
             url {
                 parameters.append("username", username)
                 parameters.append("device_id", deviceId)
+                protocol = io.ktor.http.URLProtocol.HTTPS
             }
         }
 

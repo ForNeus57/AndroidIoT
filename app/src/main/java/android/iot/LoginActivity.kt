@@ -33,6 +33,9 @@ class LoginActivity : AppCompatActivity() {
             method = io.ktor.http.HttpMethod.Post
             headers.append("Content-Type", "application/json")
             setBody("""{"username":"$username", "password":"$password"}""")
+            url {
+                protocol = io.ktor.http.URLProtocol.HTTPS
+            }
         }
 
         println(response)
