@@ -150,6 +150,17 @@ class PairedDeviceListActivity : AppCompatActivity() {
         discoveryFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         registerReceiver(receiver, discoveryFilter)
 
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_DENIED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+            {
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.BLUETOOTH_SCAN), 2)
+                Toast.makeText(
+                    this, "Please allow this device to scan", Toast.LENGTH_LONG
+                ).show()
+                finish()
+                return
+            }
+        }
 
         if (bluetoothAdapter.isDiscovering()) {
             bluetoothAdapter.cancelDiscovery()
