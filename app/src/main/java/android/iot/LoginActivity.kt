@@ -89,6 +89,12 @@ class LoginActivity : AppCompatActivity() {
                     editor.putString(SESSION_ID, response["session_id"]!!.replace("\"", ""))
                     editor.apply()
 
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "Logged in!",
+                        Toast.LENGTH_LONG
+                    ).show()
+
                     this@LoginActivity.startActivity(intentAccount)
                     Log.i("Content ", "Account layout")
                 } else {

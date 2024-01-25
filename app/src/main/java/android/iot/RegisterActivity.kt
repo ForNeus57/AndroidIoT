@@ -59,15 +59,39 @@ class RegisterActivity : AppCompatActivity() {
             )
             val etUsername = findViewById<View>(R.id.etUsername) as EditText
             val etPassword = findViewById<View>(R.id.etPassword) as EditText
+            val etConfirmPassword = findViewById<View>(R.id.etConfirmPassword) as EditText
             val username = etUsername.text.toString()
             val password = etPassword.text.toString()
-            Log.i("Content ", "$username $password")
+            val confirmPassword = etConfirmPassword.text.toString()
+
+            if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                Toast.makeText(
+                    this@RegisterActivity,
+                    "Please fill out all fields",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
+            if (password != confirmPassword) {
+                Toast.makeText(
+                    this@RegisterActivity,
+                    "Passwords do not match",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
             lifecycleScope.launch {
                 val response = sendRegisterRequest(username, password)
                 val createdAccount = response["success"] == "true"
                 if (createdAccount) {
+                    Toast.makeText(
+                        this@RegisterActivity,
+                        "Account created!",
+                        Toast.LENGTH_LONG
+                    ).show()
                     this@RegisterActivity.startActivity(intentLogin)
-                    Log.i("Content ", "Login layout")
                 } else {
                     Toast.makeText(
                         this@RegisterActivity,
