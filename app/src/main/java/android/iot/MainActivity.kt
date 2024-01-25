@@ -1,6 +1,7 @@
 package android.iot
 
 import android.content.Intent
+import android.iot.secret.Encryption
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
@@ -26,6 +27,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)      //  Set the layout to activity_main.xml
+
+        val enc = Encryption()
+        enc.decrypt()
 
 
         //  Set the onClickListener for the account button.

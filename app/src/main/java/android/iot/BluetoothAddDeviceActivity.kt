@@ -100,6 +100,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
             val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
 
             try {
+                bluetoothAdapter.cancelDiscovery()
                 socket.connect()
                 if (socket.isConnected) {
                     val writer: OutputStream = socket.outputStream

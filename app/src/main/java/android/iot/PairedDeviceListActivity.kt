@@ -123,7 +123,7 @@ class PairedDeviceListActivity : AppCompatActivity() {
                             intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                         val deviceName = device?.name ?: "Unknown"
                         val deviceHardwareAddress = device?.address ?: ""
-                        if (deviceHardwareAddress != "" && deviceHardwareAddress !in forbiddenDevicesAddresses && deviceHardwareAddress in bluetoothAdapter.bondedDevices.map { it.address }) {
+                        if (deviceHardwareAddress != "" && deviceHardwareAddress !in forbiddenDevicesAddresses) {
                             data.add(Data(deviceName, deviceHardwareAddress))
                             listAdapter.notifyItemInserted(data.size - 1)
                         }
@@ -166,9 +166,6 @@ class PairedDeviceListActivity : AppCompatActivity() {
         bluetoothAdapter.startDiscovery()
     }
 
-    /**
-     * Unregister the broadcast receiver when the activity is destroyed.
-     */
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(receiver)
