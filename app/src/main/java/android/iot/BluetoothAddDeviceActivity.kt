@@ -168,4 +168,23 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
 
         return responseMap.mapValues { it.value.toString() }
     }
+
+    private suspend fun sendCancelBindingRequest(deviceId: String): Map<String, String> {
+        val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
+        val devicesUrl = "$apiUrl/devices"
+
+        val response = HttpClient(CIO).request(devicesUrl) {
+            method = io.ktor.http.HttpMethod.Delete
+            headers.append("Content-Type", "application/json")
+            headers.append("session_id", sessionId)
+            url {
+                parameters.append("device_id", deviceId)
+                parameters.append("username", username)
+            }
+        }
+
+        val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
+
+        return responseMap.mapValues { it.value.toString() }
+    }
 }
