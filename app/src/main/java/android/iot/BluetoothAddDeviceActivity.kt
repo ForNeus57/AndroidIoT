@@ -16,11 +16,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -61,6 +63,9 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         val connect = findViewById<View>(R.id.connectButton) as Button
         val backButton = findViewById<View>(R.id.backButton) as ImageButton
         backButton.setOnClickListener {
+            runBlocking {
+                this@BluetoothAddDeviceActivity.sendCancelBindingRequest(this@BluetoothAddDeviceActivity.deviceId)
+            }
             val intentMain = Intent(
                 this@BluetoothAddDeviceActivity,
                 PairedDeviceListActivity::class.java
@@ -94,45 +99,73 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         }
 
         connect.setOnClickListener {
-
-//            val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-//            val list = pairedDevices?.filter { it.address == this.deviceMac }?.map { it.address }
-//            val deviceName = list?.firstOrNull() ?: return@setOnClickListener
-
             val device = bluetoothAdapter.getRemoteDevice(this.deviceMac)
             val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
 
-            try {
-                bluetoothAdapter.cancelDiscovery()
-                socket.connect()
-                if (socket.isConnected) {
-                    val writer: OutputStream = socket.outputStream
+            lifecycleScope.launch {
+                try {
+                    bluetoothAdapter.cancelDiscovery()
+                    socket.connect()
+                    if (socket.isConnected) {
+                        val writer: OutputStream = socket.outputStream
 
-                    writer.write(packToJSON(ssid.text.toString(), password.text.toString()).toByteArray())
+                        writer.write(packToJSON(ssid.text.toString(), password.text.toString()).toByteArray())
 
-                    val reader = socket.inputStream
+                        val reader = socket.inputStream
 
-                    val buffer = ByteArray(8192) // or 4096, or more
-                    val length = reader.read(buffer)
-                    val text = String(buffer, 0, length)
-                    val jsonObject = JSONObject(text)
-                    val key = jsonObject.getString("key")
-                    if (history.contains(key)) {
-                        wifiConnectionStatusText.text = "Hash already used! Detected replay attack!"
-                    } else {
-                        wifiConnectionStatusText.text = text
-                        history.add(key)
+                        val buffer = ByteArray(8192) // or 4096, or more
+                        val length = reader.read(buffer)
+                        val text = String(buffer, 0, length)
+                        val jsonObject = JSONObject(text)
+                        val key = jsonObject.getString("key")
+                        if (history.contains(key)) {
+                            wifiConnectionStatusText.text = "Hash already used! Detected replay attack!"
+                        } else {
+                            wifiConnectionStatusText.text = text
+                            history.add(key)
+                        }
+                        val message = jsonObject.getString("message")
+                        when(message) {
+                            "Ok" -> {
+                                Toast.makeText(
+                                    this@BluetoothAddDeviceActivity, "Device added!", Toast.LENGTH_LONG
+                                ).show()
+                                val intentMain = Intent(
+                                    this@BluetoothAddDeviceActivity,
+                                    UserDevices::class.java
+                                )
+                                this@BluetoothAddDeviceActivity.startActivity(intentMain)
+                            }
+                            "Bad password" -> {
+                                Toast.makeText(
+                                    this@BluetoothAddDeviceActivity, "Bad wifi ssid or password!", Toast.LENGTH_LONG
+                                ).show()
+                                wifiConnectionStatusText.text = "Bad wifi ssid or password!"
+                            }
+                            "Device already has an owner" -> {
+                                Toast.makeText(
+                                    this@BluetoothAddDeviceActivity, "Device already has an owner!", Toast.LENGTH_LONG
+                                ).show()
+                                wifiConnectionStatusText.text = "Device already has an owner!"
+                            }
+                            else -> {
+                                Toast.makeText(
+                                    this@BluetoothAddDeviceActivity, "Unknown device answer!", Toast.LENGTH_LONG
+                                ).show()
+                                wifiConnectionStatusText.text = "Unknown device awnser!"
+                            }
+                        }
+
+                        writer.close()
+                        reader.close()
+                        socket.close()
+
+                        ssid.text.clear()
+                        password.text.clear()
                     }
-
-                    writer.close()
-                    reader.close()
-                    socket.close()
-
-                    ssid.text.clear()
-                    password.text.clear()
+                } catch (e: Exception) {
+                    Log.wtf("android.iot", e.toString())
                 }
-            } catch (e: Exception) {
-                Log.wtf("android.iot", e.toString())
             }
         }
     }
