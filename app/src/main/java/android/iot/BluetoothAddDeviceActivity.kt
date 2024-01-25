@@ -189,10 +189,12 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         }\"}"
     }
 
+    // Retrieve new device id after binding at server side
     private suspend fun getDeviceId(macAddress: String): String {
         return sendCreateUserDeviceBindingRequest(macAddress)["device_id"]!!.replace("\"", "")
     }
 
+    // API call to create a new device binding. We use the Ktor library to make the request. Authentication is done with session tokens.
     private suspend fun sendCreateUserDeviceBindingRequest(macAddress: String) : Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val devicesUrl = "$apiUrl/devices"
@@ -201,6 +203,9 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
             method = io.ktor.http.HttpMethod.Post
             headers.append("Content-Type", "application/json")
             setBody("""{"username":"$username", "MAC":"$macAddress", "session_id":"$sessionId"}""")
+            url {
+                protocol = io.ktor.http.URLProtocol.HTTPS
+            }
         }
 
         val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
@@ -208,6 +213,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         return responseMap.mapValues { it.value.toString() }
     }
 
+    // API call to cancel binding. We use the Ktor library to make the request. Authentication is done with session tokens.
     private suspend fun sendCancelBindingRequest(deviceId: String): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val devicesUrl = "$apiUrl/devices"
@@ -219,6 +225,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
             url {
                 parameters.append("device_id", deviceId)
                 parameters.append("username", username)
+                protocol = io.ktor.http.URLProtocol.HTTPS
             }
         }
 

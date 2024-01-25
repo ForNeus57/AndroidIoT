@@ -197,6 +197,7 @@ class UserListDeviceAdapter(
             url {
                 parameters.append("device_id", deviceId)
                 parameters.append("username", username)
+                protocol = io.ktor.http.URLProtocol.HTTPS
             }
         }
 

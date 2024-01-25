@@ -19,6 +19,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 
 class RegisterActivity : AppCompatActivity() {
+    // API call to register. We use the Ktor library to make the request.
     private suspend fun sendRegisterRequest(username: String, password: String): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val usersUrl = "$apiUrl/users"
@@ -27,10 +28,10 @@ class RegisterActivity : AppCompatActivity() {
             method = io.ktor.http.HttpMethod.Post
             headers.append("Content-Type", "application/json")
             setBody("""{"username":"$username", "password":"$password"}""")
+            url {
+                protocol = io.ktor.http.URLProtocol.HTTPS
+            }
         }
-
-        println(response)
-        println(response.bodyAsText())
 
         val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
 
@@ -57,6 +58,7 @@ class RegisterActivity : AppCompatActivity() {
                 this@RegisterActivity,
                 LoginActivity::class.java
             )
+            // Get the username and password from the input fields
             val etUsername = findViewById<View>(R.id.etUsername) as EditText
             val etPassword = findViewById<View>(R.id.etPassword) as EditText
             val etConfirmPassword = findViewById<View>(R.id.etConfirmPassword) as EditText
@@ -64,6 +66,8 @@ class RegisterActivity : AppCompatActivity() {
             val password = etPassword.text.toString()
             val confirmPassword = etConfirmPassword.text.toString()
 
+            // Check that the input fields are not empty and that the passwords match
+            // Log every mistake to the user
             if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                 Toast.makeText(
                     this@RegisterActivity,
@@ -82,6 +86,7 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // We use coroutines to make the API call. This is similar to async / await in JS / TS.
             lifecycleScope.launch {
                 val response = sendRegisterRequest(username, password)
                 val createdAccount = response["success"] == "true"
