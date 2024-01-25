@@ -1,8 +1,6 @@
 package android.iot
 
-import android.Manifest
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -131,7 +129,6 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
                     password.text.clear()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
                 Log.wtf("android.iot", e.toString())
             }
         }

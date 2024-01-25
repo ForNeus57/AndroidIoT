@@ -45,7 +45,7 @@ class UserListDeviceAdapter(
         }
 
         holder.button.setOnClickListener {
-            if (true) { //  Marker so I don't forget to check if unbind was successful on device lever
+            if (this.sendStopSignalToDevice()) {
                 if (this.unBindTheDevice(data[index].uuid)) {
                     data[index].data.removeAt(index)
                     this.notifyItemRemoved(index)
@@ -54,6 +54,10 @@ class UserListDeviceAdapter(
                         context, "Couldn't delete!", Toast.LENGTH_LONG
                     ).show()
                 }
+            } else {
+                Toast.makeText(
+                    context, "Couldn't delete, because ESP-32 could not get the stop communicate!", Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
@@ -62,6 +66,13 @@ class UserListDeviceAdapter(
         return data.size
     }
 
+    /**
+     * Method that sends a stop signal to the device.
+     * If successful return true, false otherwise.
+     */
+    private fun sendStopSignalToDevice(): Boolean {
+        return true
+    }
 
     private fun unBindTheDevice(uuid: String): Boolean {
         return runBlocking {

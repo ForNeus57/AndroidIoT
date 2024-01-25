@@ -15,7 +15,7 @@ Polecam pobrać sobie Android Studio, a nawet zainstalować sobie maszynę wirtu
 
 Json tylko aby to ładnie wyświetlić w Markdown, nie ma zastosowania w projekcie.
 
-Polecam sobie na bierząco przeglądać te pliki co tutaj wymieniam. Nie będę się rozpisywał o każdym szczególe, bo to nie ma sensu. Wszystko jest opisane w dokumentacji Androida, a ja tylko opiszę co jest ważne i co warto znać.
+Polecam sobie na bierząco przeglądać te pliki co tutaj wymieniam. Nie będę się rozpisywał o każdym szczególe, bo to nie ma sensu. Wszystko jest opisane w dokumentacji Androida, a ja opiszę co jest ważne i co warto znać. Kod zawiera też komentarze.
 
 #Struktura
 
