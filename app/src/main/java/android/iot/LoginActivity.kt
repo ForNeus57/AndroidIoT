@@ -25,6 +25,8 @@ class LoginActivity : AppCompatActivity() {
         const val LOGGED_IN = "loggedIn"
         const val SESSION_ID = "sessionId"
     }
+
+    // API call to login. We use the Ktor library to make the request. Authentication is done with session tokens.
     private suspend fun sendLoginRequest(username: String, password: String) : Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val loginUrl = "$apiUrl/login"
@@ -38,9 +40,7 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        println(response)
-        println(response.bodyAsText())
-
+        // The response is a JSON object. We parse it to a map.
         val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
 
         return responseMap.mapValues { it.value.toString() }
@@ -81,11 +81,13 @@ class LoginActivity : AppCompatActivity() {
             val etPassword = findViewById<View>(R.id.etPassword) as EditText
             val username = etUsername.text.toString()
             val password = etPassword.text.toString()
-            Log.i("Content ", "$username $password")
+
+            // We use coroutines to make the API call. This is similar to async / await in JS / TS.
             lifecycleScope.launch {
                 val response = sendLoginRequest(username, password)
                 val loggedIn = response["success"] == "true"
                 if (loggedIn) {
+                    // If the user is logged in, we save the session token and username to shared preferences.
                     val editor = sharedPreferences.edit()
                     editor.putString(USERNAME, username)
                     editor.putBoolean(LOGGED_IN, true)

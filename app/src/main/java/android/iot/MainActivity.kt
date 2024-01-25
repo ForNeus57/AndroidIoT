@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
  */
 class MainActivity : AppCompatActivity() {
     //  This is a companion object. It is similar to static variables in Java.
+    //  We use it to pass data between activities.
     companion object {
         const val SHARED_PREFS = "sharedPrefs"
         const val USERNAME = "username"

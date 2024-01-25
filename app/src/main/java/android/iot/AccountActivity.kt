@@ -22,19 +22,21 @@ class AccountActivity : AppCompatActivity() {
         val sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
         val userLoggedIn = sharedPreferences.getBoolean(LOGGED_IN, false)
 
+        // If user is not logged in, redirect to login page
         if (!userLoggedIn) {
             val intentLogin = Intent(
                 this@AccountActivity, LoginActivity::class.java
             )
             this@AccountActivity.startActivity(intentLogin)
         } else {
-
+            // If user is logged in, show account page
             setContentView(R.layout.activity_account)
             val username = sharedPreferences.getString(USERNAME, "")
 
             val tvUsername = findViewById<View>(R.id.tvUsername) as TextView
             tvUsername.text = username
 
+            // Back button to main menu
             val backButton = findViewById<View>(R.id.backButton) as ImageButton
             backButton.setOnClickListener {
                 val intentMain = Intent(
@@ -44,6 +46,7 @@ class AccountActivity : AppCompatActivity() {
                 Log.i("Content ", " Main layout ")
             }
 
+            // Logout button
             val logoutButton = findViewById<View>(R.id.btnLogout)
             logoutButton.setOnClickListener {
                 val intentMain = Intent(

@@ -53,6 +53,7 @@ class UserDevices : AppCompatActivity() {
             this@UserDevices.startActivity(intentPairedDeviceList)
         }
 
+        // In coroutine scope, we call the API to get the user's devices.
         lifecycleScope.launch {
             val data = this@UserDevices.getData()
             val spinner = findViewById<ProgressBar>(R.id.progressBar)
@@ -92,6 +93,7 @@ class UserDevices : AppCompatActivity() {
     }
 
 
+    // Get the user's devices from the API.
     private suspend fun getData(): ArrayList<Device> {
         val output = ArrayList<Device>()
         val response = sendListDevicesRequest(
@@ -111,6 +113,7 @@ class UserDevices : AppCompatActivity() {
         return output
     }
 
+    // API call to list user's devices.
     private suspend fun sendListDevicesRequest(
         username: String, sessionId: String
     ): Map<String, String> {
@@ -132,6 +135,8 @@ class UserDevices : AppCompatActivity() {
         return responseMap.mapValues { it.value.toString() }
     }
 
+    // Parse the response from the API call to a map. The map is of the form: { "Device 0": { "device_id": "device_id", "MAC": "MAC" }, ...}
+    // The map is used to create a list of devices.
     private fun getDeviceNameToDeviceDataMap(data: String): Map<String, Map<String, String>> {
         val devices = Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
         val devicesMap = buildMap {
