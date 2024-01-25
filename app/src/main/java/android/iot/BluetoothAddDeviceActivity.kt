@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -76,34 +77,29 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
             return
         }
 
+        //  Check if bluetooth is enabled, if not inform / ask the user to enable it.
         if (!bluetoothAdapter.isEnabled) {
-            try {
-                startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1)
-            } catch (e: SecurityException) {
-                //  User rejected the request
-                Toast.makeText(
-                    this, "User rejected ask for permission pop-up!", Toast.LENGTH_LONG
-                ).show()
-                finish()
-                return
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                {
+                    ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT), 2)
+                    Toast.makeText(
+                        this, "Please enable bluetooth connect to add device!", Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                    return
+                }
             }
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(this, arrayOf(
-                Manifest.permission.BLUETOOTH,
-                Manifest.permission.BLUETOOTH_CONNECT,
-                ), 1)
-            return
+            startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1)
         }
 
         connect.setOnClickListener {
 
-            val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-            val list = pairedDevices?.filter { it.address == this.deviceMac }?.map { it.address }
-            val deviceName = list?.firstOrNull() ?: return@setOnClickListener
+//            val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
+//            val list = pairedDevices?.filter { it.address == this.deviceMac }?.map { it.address }
+//            val deviceName = list?.firstOrNull() ?: return@setOnClickListener
 
-            val device = bluetoothAdapter.getRemoteDevice(deviceName)
+            val device = bluetoothAdapter.getRemoteDevice(this.deviceMac)
             val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
 
             try {

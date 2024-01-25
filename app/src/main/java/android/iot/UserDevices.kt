@@ -28,7 +28,7 @@ class UserDevices : AppCompatActivity() {
         const val LOGGED_IN = "loggedIn"
     }
 
-    private val devices = ArrayList<String>()
+    private var devices = ArrayList<String>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_devices)
@@ -76,6 +76,8 @@ class UserDevices : AppCompatActivity() {
                     this@UserDevices.startActivity(intentDeviceReadings)
                 }
             }
+
+            this@UserDevices.devices = data.map { it.uuid } as ArrayList<String>
 
             val adapter = UserListDeviceAdapter(data, this@UserDevices, listener)
 
