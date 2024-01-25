@@ -72,6 +72,8 @@ cccc
 
 ## Permisje
 
+!!! Kod do permisji jest tylko w `PairedDeviceListActivity.kt`, `UserListDeviceAdapter.kt` i `BluetoothAddDeviceActivity.kt` !!!
+
 Aplikacja wymaga uprawnień do działania. Są one wymagane przez system Android. W pliku `AndroidManifest.xml` znajduje się lista uprawnień, które są wymagane. Są to:
 
 -	`BLUETOOTH` - Uprawnienie do korzystania z Bluetooth
@@ -127,6 +129,33 @@ Breakdown o co biega tutaj:
 
 ## Bluetooth
 
+```kotlin
+val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
+val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter ?: run {
+	//  Device doesn't support Bluetooth
+	Toast.makeText(
+		this, "Your device does not have Bluetooth!", Toast.LENGTH_LONG
+	).show()
+	finish()
+	return
+}
+
+//  Check if bluetooth is enabled, if not inform / ask the user to enable it.
+if (!bluetoothAdapter.isEnabled) {
+	if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+			ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT), 2)
+			Toast.makeText(
+				this, "Please enable bluetooth connect to add device!", Toast.LENGTH_LONG
+			).show()
+			finish()
+			return
+		}
+	}
+	ActivityCompat.startActivityForResult(this, Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1, null)
+}
+```
+
 ### Bluetooth Scan
 
 !!! Kod do discovery jest tylko w `PairedDeviceListActivity.kt` !!!
@@ -168,9 +197,124 @@ Na koniec dla bezpieczeństwa wywołujemy `unregisterReceiver(receiver)` w metod
 
 ### Bluetooth Connect
 
+!!! Kod do łączenia się przez sockety bluetooth jest tylko w `BluetoothAddDeviceActivity.kt` i `UserListDeviceAdapter.kt` !!!
 
+Dobry artykuł: (Nas z niego obchodzi `Connect as a client`)
+
+`https://developer.android.com/develop/connectivity/bluetooth/connect-bluetooth-devices#kotlin`
+
+
+Procedura łączenoia jest banalnie prosta i do złudzenia przypomina sockket TCP/IP z Javy. W skrócie:
+
+Najpierw musimy uzyskać obiekt urządzenia, z którym chcemy się połączyć. Robimy to poprzez wywołanie metody `getRemoteDevice(address: String)` na naszym adapterze bluetooth. W parametrze podajemy adres MAC urządzenia, z którym chcemy się połączyć. Adres MAC możemy uzyskać poprzez discovery lub zapisany w bazie danych.
+```kotlin
+val device = bluetoothAdapter.getRemoteDevice(/* ADDRESS MAC NADAJNIKA BLUETOOTH*/)
+```
+
+Tworzymy sobie cosket RFCOMM poprzez wywołanie metody `createRfcommSocketToServiceRecord(uuid: UUID)` na obiekcie urządzenia. W parametrze podajemy UUID usługi, z którą chcemy się połączyć. UUID usługi możemy dostać z poprzedniego punktu. Tworzymy secure socket, ponieważ nie chcemy, aby ktoś podsłuchiwał nasze dane. W skrócie UUID to jest identyfikator usługi, która jest dostępna na urządzeniu. Więcej info: `https://developer.android.com/reference/android/bluetooth/BluetoothDevice#createRfcommSocketToServiceRecord(java.util.UUID)`.
+
+```kotlin
+val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
+```
+
+Dalej łączymy się z socketem, pamiętając o zamknięciu discovery. I pozamykaniu wszyskitego na końcu.
+
+```kotlin
+//	Jak ktoś jest expertem Socketów i widzi jawny błąd to prosze o komentarz.
+//	Ja nie mam pojęcia co robie i 2 raz w życiu używam socketów na poważnie XD
+try {
+	bluetoothAdapter.cancelDiscovery()
+	socket.connect()
+	if (socket.isConnected) {
+		val writer: OutputStream = socket.outputStream
+		writer.write("NASZ STRING DANYCH".toByteArray())
+
+		val reader = socket.inputStream
+		val buffer = ByteArray(8192) // or 4096, or more
+		val length = reader.read(buffer)
+		val text = String(buffer, 0, length)
+		//	text == "NASZ STRING DANYCH"
+
+		//	Zamknięcie wszystkiego co się da
+		writer.close()
+		reader.close()
+		socket.close()
+	}
+} catch (e: Exception) {
+	//	Najczęściej to BrokenPipeException, gdy ktoś zamknie połączenie za wcześnie.
+}
+```
+
+Warto pamiętać, że dla naszej biblioteki (od strony płytki) do łączenia się przez Bluetooth wszystkie wejścia trzeba zakończyć literką ASCII (0x0A). W skrócie na końcu trzeba zawsze dać Char(10), bo inaczej będzie zatrzymanie pracy płytki i mamy dead-lock apki i płytki. Przykład:
+
+```kotlin
+("STRING BLA BLA BAL" + Char(10)).toByteArray()		//	W writer.write(....)
+```
+
+#### Connect to device (bind it to user) - `BluetoothAddDeviceActivity.kt`
+
+Komunikacja z płytką ESP-32 do bindingu urządzenia z użytkownikiem. W skrócie:
+
+-	wysyłamy taki .json (oczywiście w rzeczywistości zminifikowany i zenkryptowany):
+	```json
+	{
+		"device_id": "${Device ID}",
+		"username": "${Username}",
+		"ssid": "${Wifi SSID}",
+		"password": "${Wifi Password}",
+		"hash": "${Random unique Hash}"
+	}
+	```
+	Skład:
+	-	device_id - ID urządzenia przydzielone przez API
+	-	username - Nazwa urzytkownika, tak aby płytki ktoś nie mógł sobie ukraść przy próby parowania.
+	-	ssid - SSID sieci wifi podane przez użytkownika.
+	-	password - Password Sieci Wifi, podane przez Użytkownika.
+	-	hash - losowy hash SHA256 z `System.currentTimeMillis().toString()`, gwarantujący niepowtarzalność komunikatu.
+
+-	Następnie płytka prztwraza komunikat i wysyła jeden z stringów jako komunikaty. Struktura odpowiedzi to json, którego dekryptujemy:
+	```json
+	{
+		"message": "Treść wiadomości",
+		"key": "Losowa liczba z bardzo dużego zakresu",
+	}
+	```
+	-	Możlwie wartości `message`:
+		-	`Ok` - Wszystko zaszło poprawnie.
+		-	`Bad password` - Albo Hasło, albo SSID nie działa i płytka nie może się połączyć do sieci Wifi.
+		-	`Device already has an owner` - Aby nie dało się przypisać 2 razy do tego samego urzytkownika i nadpisać ownera.
+		-	`Cokolwiek innego - jakikolwiek string` - Błąd nie przewidzany przeze mnie lub Szymona XD.
+
+#### Connect to device (unbind it from user) - `UserListDeviceAdapter.kt`
+
+-	wysyłamy taki .json (oczywiście w rzeczywistości zminifikowany i zenkryptowany):
+	```json
+	{
+		"username": "${this.username}",
+		"doReadValue": false,
+		"key": "${Random unique Hash}"
+	}
+	```
+	Skład:
+	-	username - Nazwa urzytkownika, tak aby płytki ktoś nie mógł sobie ukraść przy próbie odparowania XD.
+	-	doReadValue - Marna pozostałość po pięknym systemie kontroli sterowania płytki XD. Podobno dalej płytka sprawdza czy tu ktoś nie wstałił `true` XD.
+	-	key - losowy hash SHA256 z `System.currentTimeMillis().toString()`, gwarantujący niepowtarzalność komunikatu.
+
+-	Następnie płytka prztwraza komunikat i wysyła jeden z stringów jako komunikaty. Struktura odpowiedzi to json, którego dekryptujemy:
+	```json
+	{
+		"message": "Treść wiadomości",
+		"key": "Losowa liczba z bardzo dużego zakresu",
+	}
+	```
+	-	Możlwie wartości `message`:
+		-	`Ok` - Wszystko zaszło poprawnie.
+		-	`Bad password` - Albo Hasło, albo SSID nie działa i płytka nie może się połączyć do sieci Wifi. (Nie wiem jaki ma to sens przy odparowaniu, ale jest)
+		-	`Device already has an owner` - Aby nie dało się przypisać 2 razy do tego samego urzytkownika i nadpisać ownera. (Nie wiem jaki ma to sens przy odparowaniu, ale jest)
+		-	`Cokolwiek innego - jakikolwiek string` - Błąd nie przewidzany przeze mnie lub Szymona XD.
 
 ## Enkrypcja
+
 
 
 ## Shared preferneces
