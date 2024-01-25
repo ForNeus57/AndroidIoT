@@ -106,8 +106,10 @@ class PairedDeviceListActivity : AppCompatActivity() {
         this.receiver = object : BroadcastReceiver() {
 
             override fun onReceive(context: Context, intent: Intent) {
+                //  Switch on the action of the intent.
                 when(intent.action) {
                     BluetoothDevice.ACTION_FOUND -> {
+                        //  Quick permission check, if the permission is not granted, ask for it. device?.name requires this permission.
                         if (ContextCompat.checkSelfPermission(this@PairedDeviceListActivity, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                             {
@@ -119,10 +121,13 @@ class PairedDeviceListActivity : AppCompatActivity() {
                                 return
                             }
                         }
+                        //  Get the device from the intent.
                         val device: BluetoothDevice? =
                             intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                        val deviceName = device?.name ?: "Unknown"
-                        val deviceHardwareAddress = device?.address ?: ""
+                        val deviceName = device?.name ?: "Unknown"                                  //  Get the device name, if it is null, set it to "Unknown".
+                        val deviceHardwareAddress = device?.address ?: ""                           //  Get the device MAC address, if it is null, set it to "". This is the address we use to connect to the device.
+
+                        //  Check if the device is not already paired with the user and if it is paired with the device. If so, add it to the list.
                         if (deviceHardwareAddress != "" && deviceHardwareAddress !in forbiddenDevicesAddresses && deviceHardwareAddress in bluetoothAdapter.bondedDevices.map { it.address }) {
                             data.add(Data(deviceName, deviceHardwareAddress))
                             listAdapter.notifyItemInserted(data.size - 1)
