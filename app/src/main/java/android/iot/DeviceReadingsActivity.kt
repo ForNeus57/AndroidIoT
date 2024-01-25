@@ -26,17 +26,26 @@ import java.time.format.DateTimeFormatter
 
 class DeviceReadingsActivity : AppCompatActivity() {
 
-    private suspend fun sendListDeviceReadingsRequest(deviceId: String): Map<String, String> {
+    private suspend fun sendListDeviceReadingsRequest(
+        deviceId: String,
+        sessionId: String,
+        username: String
+    ): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val dataUrl = "$apiUrl/data"
 
         val response = HttpClient(CIO).request(dataUrl) {
             method = io.ktor.http.HttpMethod.Get
             headers.append("Content-Type", "application/json")
-            url { parameters.append("device_id", deviceId) }
+            headers.append("session_id", sessionId)
+            url {
+                parameters.append("username", username)
+                parameters.append("device_id", deviceId)
+            }
         }
 
         val responseMap = Json.parseToJsonElement(response.bodyAsText()).jsonObject.toMap()
+        println(responseMap)
 
         return responseMap.mapValues { it.value.toString() }
     }
@@ -55,10 +64,17 @@ class DeviceReadingsActivity : AppCompatActivity() {
         }
 
         val deviceId = intent.getStringExtra("device_id")
-        println(deviceId)
+        val sessionId = getSharedPreferences(
+            UserDevices.SHARED_PREFS,
+            MODE_PRIVATE
+        ).getString(UserDevices.SESSION_ID, null)
+        val username = getSharedPreferences(
+            UserDevices.SHARED_PREFS,
+            MODE_PRIVATE
+        ).getString(UserDevices.USERNAME, null)
 
         lifecycleScope.launch {
-            val response = sendListDeviceReadingsRequest(deviceId!!)
+            val response = sendListDeviceReadingsRequest(deviceId!!, sessionId!!, username!!)
             val spinner = findViewById<ProgressBar>(R.id.progressBar)
             spinner.visibility = View.GONE
             Log.i("Content ", response.toString())

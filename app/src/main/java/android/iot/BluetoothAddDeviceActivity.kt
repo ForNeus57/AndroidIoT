@@ -35,11 +35,13 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         const val SHARED_PREFS = "sharedPrefs"
         const val USERNAME = "username"
         const val LOGGED_IN = "loggedIn"
+        const val SESSION_ID = "sessionId"
     }
 
     private var username = ""
     private var deviceId = ""
     private var deviceMac = ""
+    private var sessionId = ""
 
     private var history = HashSet<String>()
 
@@ -49,8 +51,9 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         this.deviceMac = intent.getStringExtra("deviceMac") ?: ""
         val preferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE)
         this.username = preferences.getString(USERNAME, "") ?: ""
+        this.sessionId = preferences.getString(SESSION_ID, "") ?: ""
         runBlocking {
-            this@BluetoothAddDeviceActivity.deviceId = getDeviceId(this@BluetoothAddDeviceActivity.deviceMac, this@BluetoothAddDeviceActivity.username)
+            this@BluetoothAddDeviceActivity.deviceId = getDeviceId(this@BluetoothAddDeviceActivity.deviceMac, this@BluetoothAddDeviceActivity.username, this@BluetoothAddDeviceActivity.sessionId)
         }
         val ssid = findViewById<View>(R.id.ssidEditText) as EditText
         val password = findViewById<View>(R.id.wifiPasswordEditTextPassword) as EditText
@@ -148,18 +151,19 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
     }
 
 
-    private suspend fun getDeviceId(macAddress: String, username: String): String {
-        val data = sendListDevicesRequest(username)["data"]!!
+    private suspend fun getDeviceId(macAddress: String, username: String, session_id: String): String {
+        val data = sendListDevicesRequest(username, session_id)["data"]!!
         return getDeviceIdFromMac(data, macAddress)
     }
 
-    private suspend fun sendListDevicesRequest(username: String) : Map<String, String> {
+    private suspend fun sendListDevicesRequest(username: String, session_id: String) : Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val devicesUrl = "$apiUrl/devices"
 
         val response = HttpClient(CIO).request(devicesUrl) {
             method = io.ktor.http.HttpMethod.Get
             headers.append("Content-Type", "application/json")
+            headers.append("session_id", session_id)
             url { parameters.append("username", username) }
         }
 

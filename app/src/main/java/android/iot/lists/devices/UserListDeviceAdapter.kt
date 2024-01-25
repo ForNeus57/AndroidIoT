@@ -25,6 +25,10 @@ class UserListDeviceAdapter(
         "sharedPrefs", Context.MODE_PRIVATE
     ).getString("username", null)!!
 
+    val sessionId = context.getSharedPreferences(
+        "sharedPrefs", Context.MODE_PRIVATE
+    ).getString("sessionId", null)!!
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceViewHolder {
         val context = parent.context
         val inflater = LayoutInflater.from(context)
@@ -88,6 +92,7 @@ class UserListDeviceAdapter(
         val response = HttpClient(CIO).request(devicesUrl) {
             method = io.ktor.http.HttpMethod.Delete
             headers.append("Content-Type", "application/json")
+            headers.append("session_id", sessionId)
             url {
                 parameters.append("device_id", deviceId)
                 parameters.append("username", username)

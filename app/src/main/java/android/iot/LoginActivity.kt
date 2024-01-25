@@ -23,6 +23,7 @@ class LoginActivity : AppCompatActivity() {
         const val SHARED_PREFS = "sharedPrefs"
         const val USERNAME = "username"
         const val LOGGED_IN = "loggedIn"
+        const val SESSION_ID = "sessionId"
     }
     private suspend fun sendLoginRequest(username: String, password: String) : Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
@@ -85,6 +86,7 @@ class LoginActivity : AppCompatActivity() {
                     val editor = sharedPreferences.edit()
                     editor.putString(USERNAME, username)
                     editor.putBoolean(LOGGED_IN, true)
+                    editor.putString(SESSION_ID, response["session_id"]!!.replace("\"", ""))
                     editor.apply()
 
                     this@LoginActivity.startActivity(intentAccount)

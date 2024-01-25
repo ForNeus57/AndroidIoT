@@ -13,6 +13,7 @@ class AccountActivity : AppCompatActivity() {
         const val SHARED_PREFS = "sharedPrefs"
         const val USERNAME = "username"
         const val LOGGED_IN = "loggedIn"
+        const val SESSION_ID = "sessionId"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +52,7 @@ class AccountActivity : AppCompatActivity() {
                 val editor = sharedPreferences.edit()
                 editor.putBoolean(LOGGED_IN, false)
                 editor.putString(USERNAME, "")
+                editor.putString(SESSION_ID, "")
                 editor.apply()
                 this@AccountActivity.startActivity(intentMain)
                 Log.i("Content ", "Login layout")

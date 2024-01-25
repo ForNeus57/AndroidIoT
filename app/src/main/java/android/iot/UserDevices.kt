@@ -26,6 +26,7 @@ class UserDevices : AppCompatActivity() {
         const val SHARED_PREFS = "sharedPrefs"
         const val USERNAME = "username"
         const val LOGGED_IN = "loggedIn"
+        const val SESSION_ID = "sessionId"
     }
 
     private var forbiddenDevices = ArrayList<String>()
@@ -96,6 +97,9 @@ class UserDevices : AppCompatActivity() {
         val response = sendListDevicesRequest(
             getSharedPreferences(SHARED_PREFS, MODE_PRIVATE).getString(
                 USERNAME, ""
+            )!!,
+            getSharedPreferences(SHARED_PREFS, MODE_PRIVATE).getString(
+                SESSION_ID, ""
             )!!
         )
         val devices = getDeviceNameToDeviceIdMap(response["data"]!!)
@@ -107,13 +111,16 @@ class UserDevices : AppCompatActivity() {
         return output
     }
 
-    private suspend fun sendListDevicesRequest(username: String): Map<String, String> {
+    private suspend fun sendListDevicesRequest(
+        username: String, sessionId: String
+    ): Map<String, String> {
         val apiUrl = "https://vye4bu6645.execute-api.eu-north-1.amazonaws.com/default"
         val devicesUrl = "$apiUrl/devices"
 
         val response = HttpClient(CIO).request(devicesUrl) {
             method = io.ktor.http.HttpMethod.Get
             headers.append("Content-Type", "application/json")
+            headers.append("session_id", sessionId)
             url { parameters.append("username", username) }
         }
 
