@@ -19,6 +19,7 @@ class PairedDeviceListActivity : AppCompatActivity() {
 
     /**
      * List of device MAC addresses that are forbidden to be shown in the list. I.E the devices that are already paired with the user.
+     * Retrieved from the intent that started this View.
      */
     private var forbiddenDevicesAddresses = ArrayList<String>()
     private var data = ArrayList<Data>()
