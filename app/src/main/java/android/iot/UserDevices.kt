@@ -102,10 +102,10 @@ class UserDevices : AppCompatActivity() {
                 SESSION_ID, ""
             )!!
         )
-        val devices = getDeviceNameToDeviceIdMap(response["data"]!!)
+        val devices = getDeviceNameToDeviceDataMap(response["data"]!!)
 
         for (device in devices) {
-            output.add(Device(device.key, device.address, device.value, output))
+            output.add(Device(device.key, device.value["MAC"]!!, device.value["device_id"]!!, output))
         }
 
         return output
@@ -129,12 +129,17 @@ class UserDevices : AppCompatActivity() {
         return responseMap.mapValues { it.value.toString() }
     }
 
-    private fun getDeviceNameToDeviceIdMap(data: String): Map<String, String> {
+    private fun getDeviceNameToDeviceDataMap(data: String): Map<String, Map<String, String>> {
         val devices = Json.parseToJsonElement(data).jsonArray.map { it.jsonObject.toMap() }
         val devicesMap = buildMap {
             for ((index, device) in devices.withIndex()) {
                 val deviceId = device["device_id"].toString().replace("\"", "")
-                put("Device $index", deviceId)
+                val deviceMAC = device["MAC"].toString().replace("\"", "")
+                val deviceData = buildMap {
+                    put("device_id", deviceId)
+                    put("MAC", deviceMAC)
+                }
+                put("Device $index", deviceData)
             }
         }
         return devicesMap

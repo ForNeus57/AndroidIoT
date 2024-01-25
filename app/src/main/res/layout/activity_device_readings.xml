@@ -10,19 +10,45 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:textColor="#010203"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:textColor="#010203" >
+        app:layout_constraintTop_toTopOf="parent">
 
-    <ImageButton
-        android:id="@+id/backButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/form_back_button"
-        android:contentDescription="@string/back_button"
-        android:src="@drawable/arrow_clockwise" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@color/white"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:background="@drawable/form_back_button"
+                android:contentDescription="@string/back_button"
+                android:src="@drawable/arrow_clockwise" />
+
+            <!--            spacing-->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+            <!--            spacing-->
+
+            <ImageButton
+                android:id="@+id/refreshButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:background="@drawable/form_back_button"
+                android:contentDescription="Refresh"
+                android:src="@drawable/baseline_refresh_24" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/yourDevices"
@@ -32,26 +58,26 @@
             android:layout_centerHorizontal="true"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"
-            android:textStyle="bold"
+            android:text="Readings from your device:"
             android:textColor="#010203"
-            android:text="Readings from your device:" />
+            android:textStyle="bold" />
 
         <ProgressBar
+            android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleLarge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/progressBar"
-            android:progressDrawable="@drawable/circular_progress_bar"
             android:layout_below="@+id/yourDevices"
             android:layout_gravity="center"
-            android:layout_marginTop="170dp" />
+            android:layout_marginTop="170dp"
+            android:progressDrawable="@drawable/circular_progress_bar" />
 
-    <ListView
-        android:id="@+id/lvDevices"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/backButton"
-        android:layout_marginTop="16dp" />
+        <ListView
+            android:id="@+id/lvDevices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/backButton"
+            android:layout_marginTop="16dp" />
 
     </LinearLayout>
 

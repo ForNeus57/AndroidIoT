@@ -63,6 +63,15 @@ class DeviceReadingsActivity : AppCompatActivity() {
             this@DeviceReadingsActivity.startActivity(intentMain)
         }
 
+        val refreshButton = findViewById<View>(R.id.refreshButton) as ImageButton
+        refreshButton.setOnClickListener {
+            val intentMain = Intent(
+                this@DeviceReadingsActivity, DeviceReadingsActivity::class.java
+            )
+            intentMain.putExtra("device_id", intent.getStringExtra("device_id"))
+            this@DeviceReadingsActivity.startActivity(intentMain)
+        }
+
         val deviceId = intent.getStringExtra("device_id")
         val sessionId = getSharedPreferences(
             UserDevices.SHARED_PREFS,
@@ -79,7 +88,8 @@ class DeviceReadingsActivity : AppCompatActivity() {
             spinner.visibility = View.GONE
             Log.i("Content ", response.toString())
 
-            val readings = getReadings(response["data"]!!)
+            var readings = getReadings(response["data"]!!)
+            readings = readings.sorted()
 
             if (readings.isEmpty()) {
                 val builder: AlertDialog.Builder = AlertDialog.Builder(this@DeviceReadingsActivity)
@@ -109,7 +119,11 @@ class DeviceReadingsActivity : AppCompatActivity() {
                 val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                 val formattedDate = localDateTime.format(formatter)
 
-                add(formattedDate + ": " + reading["value"].toString())
+                val value = reading["value"].toString()
+
+                add(
+                    "$formattedDate: $value " + (if (value.toDouble() > 700) "Light!" else "Darkness...")
+                )
             }
         }
     }
