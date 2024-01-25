@@ -138,7 +138,7 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
     }
 
     private fun packToJSON(ssid: String, password: String): String {
-        return "{\"username\":\"${this.username}\",\"ssid\":\"${ssid}\",\"password\":\"${password}\",\"hash\":\"${this.getHash(System.currentTimeMillis().toString())}\"}" + Char(
+        return "{\"device_id\":\"${this.deviceId}\",\"username\":\"${this.username}\",\"ssid\":\"${ssid}\",\"password\":\"${password}\",\"hash\":\"${this.getHash(System.currentTimeMillis().toString())}\"}" + Char(
             10
         )
     }
