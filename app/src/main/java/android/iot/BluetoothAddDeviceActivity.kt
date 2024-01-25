@@ -4,6 +4,8 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.iot.secret.Encryption
+import android.iot.secret.SHA256
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -45,8 +47,6 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
     private var deviceMac = ""
     private var sessionId = ""
 
-    private var history = HashSet<String>()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bluetooth_add_device)
@@ -56,6 +56,10 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
         this.sessionId = preferences.getString(SESSION_ID, "") ?: ""
         runBlocking {
             this@BluetoothAddDeviceActivity.deviceId = getDeviceId(this@BluetoothAddDeviceActivity.deviceMac)
+        }
+        val history = preferences.getStringSet("history", HashSet()) ?: run {
+            preferences.edit().putStringSet("history", HashSet()).apply()
+            HashSet<String>()
         }
         val ssid = findViewById<View>(R.id.ssidEditText) as EditText
         val password = findViewById<View>(R.id.wifiPasswordEditTextPassword) as EditText
@@ -109,20 +113,24 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
                     if (socket.isConnected) {
                         val writer: OutputStream = socket.outputStream
 
-                        writer.write(packToJSON(ssid.text.toString(), password.text.toString()).toByteArray())
+                        writer.write((Encryption.encrypt(packToJSON(ssid.text.toString(), password.text.toString())) + Char(
+                            10
+                        )).toByteArray())
 
                         val reader = socket.inputStream
 
                         val buffer = ByteArray(8192) // or 4096, or more
                         val length = reader.read(buffer)
-                        val text = String(buffer, 0, length)
+                        val text = Encryption.decrypt(String(buffer, 0, length))
                         val jsonObject = JSONObject(text)
                         val key = jsonObject.getString("key")
                         if (history.contains(key)) {
                             wifiConnectionStatusText.text = "Hash already used! Detected replay attack!"
                         } else {
                             wifiConnectionStatusText.text = text
-                            history.add(key)
+                            val setSth = HashSet(history)
+                            setSth.add(key)
+                            preferences.edit().putStringSet("history", setSth).apply()
                         }
                         val message = jsonObject.getString("message")
                         when(message) {
@@ -164,6 +172,9 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
                         password.text.clear()
                     }
                 } catch (e: Exception) {
+                    Toast.makeText(
+                        this@BluetoothAddDeviceActivity, "Error: ${e.message}", Toast.LENGTH_LONG
+                    ).show()
                     Log.wtf("android.iot", e.toString())
                 }
             }
@@ -171,16 +182,11 @@ class BluetoothAddDeviceActivity : AppCompatActivity() {
     }
 
     private fun packToJSON(ssid: String, password: String): String {
-        return "{\"device_id\":\"${this.deviceId}\",\"username\":\"${this.username}\",\"ssid\":\"${ssid}\",\"password\":\"${password}\",\"hash\":\"${this.getHash(System.currentTimeMillis().toString())}\"}" + Char(
-            10
-        )
-    }
-
-    private fun getHash(value: String): String {
-        val bytes = value.toByteArray()
-        val md = MessageDigest.getInstance("SHA-256")
-        val digest = md.digest(bytes)
-        return digest.fold(StringBuilder()) { sb, it -> sb.append("%02x".format(it)) }.toString()
+        return "{\"device_id\":\"${this.deviceId}\",\"username\":\"${this.username}\",\"ssid\":\"${ssid}\",\"password\":\"${password}\",\"hash\":\"${
+            SHA256.getHash(
+                System.currentTimeMillis().toString()
+            )
+        }\"}"
     }
 
     private suspend fun getDeviceId(macAddress: String): String {

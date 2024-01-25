@@ -7,8 +7,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.iot.R
+import android.iot.UserDevices
 import android.iot.lists.ListViewClickListener
+import android.iot.secret.Encryption
+import android.iot.secret.SHA256
 import android.os.Build
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
@@ -23,6 +27,8 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import org.json.JSONObject
+import java.io.OutputStream
 
 class UserListDeviceAdapter(
     private val data: ArrayList<Device>,
@@ -96,15 +102,14 @@ class UserListDeviceAdapter(
         //  Check if bluetooth is enabled, if not inform / ask the user to enable it.
         if (!bluetoothAdapter.isEnabled) {
             if (ContextCompat.checkSelfPermission(this.context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    ActivityCompat.requestPermissions(this.context as Activity, arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT), 2)
-                    Toast.makeText(
-                        this.context, "Please enable bluetooth connect to add device!", Toast.LENGTH_LONG
-                    ).show()
-                    return false
-                }
+                return false
             }
-            ActivityCompat.startActivityForResult(this.context as Activity, Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), 1, null)
+        }
+
+        val preferences = this.context.getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+        val history = preferences.getStringSet("history", HashSet()) ?: run {
+            preferences.edit().putStringSet("history", HashSet()).apply()
+            HashSet<String>()
         }
 
 
@@ -112,14 +117,64 @@ class UserListDeviceAdapter(
         val socket = device.createRfcommSocketToServiceRecord(device.uuids[0].uuid)
 
         try {
+            bluetoothAdapter.cancelDiscovery()
             socket.connect()
-            socket.outputStream.write("stop".toByteArray())
-            socket.close()
+            if (socket.isConnected) {
+                val writer: OutputStream = socket.outputStream
 
+                writer.write((
+                    Encryption.encrypt("{\"username\":\"${this.username}\",\"doReadValue\":false,\"key\":\"${SHA256.getHash(
+                    System.currentTimeMillis().toString()
+                )}\"}") + Char(10)).toByteArray())
+
+                val reader = socket.inputStream
+
+                val buffer = ByteArray(8192) // or 4096, or more
+                val length = reader.read(buffer)
+                val text = Encryption.decrypt(String(buffer, 0, length))
+                val jsonObject = JSONObject(text)
+                val key = jsonObject.getString("key")
+                if (history.contains(key)) {
+                    return false
+                } else {
+                    val setSth = HashSet(history)
+                    setSth.add(key)
+                    preferences.edit().putStringSet("history", HashSet<String>(setSth)).apply()
+                }
+                val message = jsonObject.getString("message")
+                when(message) {
+                    "Ok" -> {
+                        Toast.makeText(
+                            this.context, "Device unpaired!", Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    "Bad password" -> {
+                        Toast.makeText(
+                            this.context, "Bad wifi ssid or password!", Toast.LENGTH_LONG
+                        ).show()
+                        return false
+                    }
+                    "Device already has an owner" -> {
+                        Toast.makeText(
+                            this.context, "Device already has an owner!", Toast.LENGTH_LONG
+                        ).show()
+                        return false
+                    }
+                    else -> {
+                        Toast.makeText(
+                            this.context, "Unknown device answer!", Toast.LENGTH_LONG
+                        ).show()
+                        return false
+                    }
+                }
+
+                writer.close()
+                reader.close()
+                socket.close()
+            }
         } catch (e: Exception) {
             return false
         }
-
 
         return true
     }
