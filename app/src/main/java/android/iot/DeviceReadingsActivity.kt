@@ -94,7 +94,7 @@ class DeviceReadingsActivity : AppCompatActivity() {
             Log.i("Content ", response.toString())
 
             var readings = getReadings(response["data"]!!)
-            readings = readings.sorted()
+            readings = readings.sortedDescending()
 
             // If there are no readings, show a dialog.
             if (readings.isEmpty()) {
@@ -123,7 +123,7 @@ class DeviceReadingsActivity : AppCompatActivity() {
                 val timestamp = reading["time"].toString().toLong()
                 val instant = Instant.ofEpochMilli(timestamp)
                 val localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                 val formattedDate = localDateTime.format(formatter)
 
                 val value = reading["value"].toString()

@@ -57,7 +57,7 @@ class Encryption {
 
 
         public fun decrypt(data: String): String {
-            val decodedData = Base64.getDecoder().decode(data)                      //	Decode Base64 to binary (not human readable)
+            val decodedData = Base64.getDecoder().decode(data.replace("\r\n", ""))                      //	Decode Base64 to binary (not human readable)
 
             val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")    //	Get correct cipher
             val secretKey = SecretKeySpec(key, "AES")                      //	Pass password
