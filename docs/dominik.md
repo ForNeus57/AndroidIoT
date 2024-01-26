@@ -37,11 +37,17 @@ Tu znajduje się cały kod aplikacji, nasza używa w 100% kotlina. Opisz szczeó
 
 - `android.iot.UserDevices.kt` - Aktywność do zarządzania listą sparowanych urządzeń danego urzytkownika. Wyświtla ją poprzez call do API.
 
-- `android.iot.MainActivity.kt` - Główna aktywność włączana przy starcie aplikacji. Zawiera menu główne aplikacji. T.J.
+- `android.iot.AccountActivity.kt` - Michał suff....
 
-- `android.iot.MainActivity.kt` - Główna aktywność włączana przy starcie aplikacji. Zawiera menu główne aplikacji. T.J.
+- `android.iot.LoginActivity.kt` - Michał suff....
 
-- `android.iot.MainActivity.kt` - Główna aktywność włączana przy starcie aplikacji. Zawiera menu główne aplikacji. T.J.
+- `android.iot.RegisterActivity.kt` - Michał suff....
+
+- `android.iot.DeviceReadingActivity.kt` - Michał suff....
+
+- `android.iot.PairedDeviceListActivity.kt` - Aktywność do wyłapania urządzeń bluetooth w pobliżu. Wyświetla je w liście i pozwala na sparowanie z nimi.
+
+- `android.iot.BluetoothAddDeviceActivity.kt` - Aktywność do sparowania urządzenia z użytkownikiem. Wysyła do płytki ESP-32 dane do sparowania.
 
 - `android.iot.lists` - Folder z klasami, które są potrzebne, aby dynamicznie tworzyć listy (*RecyclerViewandroidx.recyclerview.widget.RecyclerView*).
 
@@ -49,9 +55,9 @@ Tu znajduje się cały kod aplikacji, nasza używa w 100% kotlina. Opisz szczeó
 
 - `android.iot.secret` - Folder z klasami, do enkrypcji - zawirają proste funkcje (metody / zmienne statyczne - companion object) do pracy z szyfrowaniem i deszyfrowaniem.
 
-- `android.iot.secret.Encryption.kt` - Plik z ....
+- `android.iot.secret.Encryption.kt` - Plik z algorytmami enkrypcji.
 
-- `android.iot.secret.SHA256.kt` - Plik z ....
+- `android.iot.secret.SHA256.kt` - Plik z plik z małą klasą do generacji hashy SHA256.
 
 
 Tutaj są jeszcze testy, ale nie będę się nimi zajmował. (androidTest ....) W skrócie nie są zrobione, bo nie były wymagane
@@ -59,16 +65,15 @@ Tutaj są jeszcze testy, ale nie będę się nimi zajmował. (androidTest ....) 
 
 ![MarineGEO circle logo](./2.png "Ogół struktury część 2")
 
+W folderze drawable jest coś ala miaeszaniana formatu svg oraz css, t.j style np. do przecisków i tak dalej
 
-bbbbbb
+W folderze layout jes xml odpowiedzalny za struckutrę UI. W skrócie to jest to, co widzimy na ekranie. Jest to coś ala html ze strukturą
 
 ![MarineGEO circle logo](./3.png "Ogół struktury część 3")
 
-
-cccc
-
-
-
+W values są 2 pliki:
+-	`colors.xml` - Zawiera kolory używane w aplikacji. Wartości są w formacie HEX.
+-	`strings.xml` - Zawiera stringi używane w aplikacji. Wartości są w formacie UTF-8. Może się to przydać do tłumaczenia aplikacji na inne języki.
 
 ## Permisje
 
