@@ -30,8 +30,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)      //  Set the layout to activity_main.xml
 
-        Encryption.decrypt()
-
         //  Set the onClickListener for the account button.
         //  Same as in JS / TS, the button is in layout.
         val accountButton = findViewById<View>(R.id.buttonAccount) as ImageButton

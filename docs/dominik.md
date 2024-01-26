@@ -129,6 +129,8 @@ Breakdown o co biega tutaj:
 
 ## Bluetooth
 
+Zakażdym razem, gdy checemy coś zrobić z komunikacją Bluetooth to będziemy potrzebować objektu klasy `BluetoothAdapter`, tutaj jest kod, który pozwoli nam go uzyskać:
+
 ```kotlin
 val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
 val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter ?: run {
@@ -139,7 +141,15 @@ val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter ?: run {
 	finish()
 	return
 }
+```
 
+Breakdown:
+-	`getSystemService(BluetoothManager::class.java)` - Metoda, która zwraca nam objekt klasy `BluetoothManager`, poprzez odowłanie się do odpowiedniego serwisu.
+-	`bluetoothManager.adapter` - Metoda, która zwraca nam objekt klasy `BluetoothAdapter`, poprzez odowłanie się do odpowiedniego serwisu. Jeżeli urządzenie nie wspiera bluetooth to zwraca `null`. Nie możemy z tym nic zrobić, więc robimy `run { }`, aby zakończyć działanie aplikacji XD.
+
+Następnie sprawdzamy, czy użytkownik włączył bluetooth. Jeżeli nie to prosimy go o włączenie. Możliwe też jest, że apka, nie ma permisji o proszenie o bluetooth, bo użytkownik się nie zgodził, więc też musimy to sprawdzić. Kod:
+
+```kotlin
 //  Check if bluetooth is enabled, if not inform / ask the user to enable it.
 if (!bluetoothAdapter.isEnabled) {
 	if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
@@ -315,8 +325,69 @@ Komunikacja z płytką ESP-32 do bindingu urządzenia z użytkownikiem. W skróc
 
 ## Enkrypcja
 
+Enkrypcja to jest jeden wielki Burdel, ale działa XD. Generalnie używamy enkrypcji symetrycznej (hasło to samo po obu stronach komunikacji).
 
+### SHA256 - `java/android/iot/secret/SHA256.kt`
 
-## Shared preferneces
+Używany tylko przez aplikację do generowania losowych hashy. Nie jest używany do enkrypcji.
 
+### AES128 - `java/android/iot/secret/Encryption.kt`
 
+Nasz warian algorytmu `AES` to: `AES128/CBC/PKCS5Padding`. Dlaczego?
+-	128 - Długość klucza w bitach, czyli hasło do enkrypcji i dekrypcji ma 16 znaków (16 bajtów).
+-	CBC - Tryb szyfrowania, który jest bezpieczniejszy od ECB. Więcej info: `https://pl.wikipedia.org/wiki/Block_cipher_mode_of_operation#CBC_(Cipher_Block_Chaining)`
+-	PKCS5Padding - Padding, jedyny, który działał pomiędzy płytką, a aplikacją.
+
+Klucz (hasło) szyfrowania i deszyfrowania jest następujący:
+```cpp
+KEY = {
+	0x2B, 0x7E, 0x15, 0x16,
+	0x28, 0xAE, 0xD2, 0xA6,
+	0xAB, 0xF7, 0x15, 0x88,
+	0x09, 0xCF, 0x4F, 0x3C
+}
+```
+
+A wektor inicjalizujący algorytm `AES` wygląda tak:
+```cpp
+IV = {
+	0xAA, 0xAA, 0xAA, 0xAA,
+	0xAA, 0xAA, 0xAA, 0xAA,
+	0xAA, 0xAA, 0xAA, 0xAA,
+	0xAA, 0xAA, 0xAA, 0xAA
+}
+```
+
+Proces szyfrowania i deszyfrowania jest banalnie prosty:
+
+[INPUT (PLAIN TEXT)] -> [ENCRYPT (BINARY)] -> [ENCODE (BASE64)] -> [SEND (BLUETOOTH)] -> [RECIVE (BLUETOOTH)] -> [DECODE (BASE64)] -> [DECRYPT (BINARY)] -> [OUTPUT (PLAIN TEXT)]
+
+W skrócie, szyfrowanie i deszyfrowanie wygląda tak:
+
+```kotlin
+fun encrypt(data: String): String {
+	val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")			//	Get correct cipher
+	val secretKey = SecretKeySpec(key, "AES")						//	Pass password
+	val ivParameterSpec = IvParameterSpec(iv)						//	Pass IV
+
+	cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec)	//	Init cipher
+	val decryptedData = cipher.doFinal(data.toByteArray())			//	Encrypt data to binary (not human readable)
+
+	return String(Base64.getEncoder().encode(decryptedData))		//	Encode binary to Base64 (human readable)
+}
+```
+
+```kotlin
+fun decrypt(data: String): String {
+	val decodedData = Base64.getDecoder().decode(data)              //	Decode Base64 to binary (not human readable)
+
+	val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")    		//	Get correct cipher
+	val secretKey = SecretKeySpec(key, "AES")                      	//	Pass password
+	val ivParameterSpec = IvParameterSpec(iv)                       //	Pass IV
+
+	cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec)    //	Init cipher
+	val decryptedData = cipher.doFinal(decodedData)                 //	Decrypt data to plain text (human readable)
+
+	return String(decryptedData)
+}
+```

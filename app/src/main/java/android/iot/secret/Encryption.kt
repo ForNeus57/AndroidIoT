@@ -44,23 +44,28 @@ class Encryption {
             0xAA.toByte()
         ).toByteArray()
 
-        public fun encrypt(data: String = "ABCDEFGHIJ"): String {
-            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-            val secretKey = SecretKeySpec(key, "AES")
-            val ivParameterSpec = IvParameterSpec(iv)
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec)
-            val decryptedData = cipher.doFinal(data.toByteArray())
-            return String(Base64.getEncoder().encode(decryptedData))
+        public fun encrypt(data: String): String {
+            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")	//	Get correct cipher
+            val secretKey = SecretKeySpec(key, "AES")						//	Pass password
+            val ivParameterSpec = IvParameterSpec(iv)						        //	Pass IV
+
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec)	        //	Init cipher
+            val decryptedData = cipher.doFinal(data.toByteArray())			        //	Encrypt data to binary (not human readable)
+
+            return String(Base64.getEncoder().encode(decryptedData))		        //	Encode binary to Base64 (human readable)
         }
 
-        public fun decrypt(data: String = "dWlo35QN9eYSk5wEzUQ9fQ=="): String {
 
-            val decodedData = Base64.getDecoder().decode(data)
-            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
-            val secretKey = SecretKeySpec(key, "AES")
-            val ivParameterSpec = IvParameterSpec(iv)
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec)
-            val decryptedData = cipher.doFinal(decodedData)
+        public fun decrypt(data: String): String {
+            val decodedData = Base64.getDecoder().decode(data)                      //	Decode Base64 to binary (not human readable)
+
+            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")    //	Get correct cipher
+            val secretKey = SecretKeySpec(key, "AES")                      //	Pass password
+            val ivParameterSpec = IvParameterSpec(iv)                               //	Pass IV
+
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec)            //	Init cipher
+            val decryptedData = cipher.doFinal(decodedData)                         //	Decrypt data to plain text (human readable)
+
             return String(decryptedData)
         }
     }
